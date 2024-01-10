@@ -1,0 +1,48 @@
+{{COMMON_USER_DATA}}
+QUERY_CONFIG_VERSION={{QUERY_CONFIG_VERSION}}
+
+cp -rf $DRUID_SOLUTION_CONFIG/query $DRUID_CLUSTER_CONFIG/
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/broker.json
+{{BROKER_RUNTIME_CONFIG}}
+EOF
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/router.json
+{{ROUTER_RUNTIME_CONFIG}}
+EOF
+
+echo " >>druid>> rendering jvm configuration $(date)"
+$PYTHON $DRUID_HOME/scripts/druid/render_jvm_config.py \
+    --component query \
+    --region {{REGION}} \
+    --service-tier {{SERVICE_TIER}} \
+    --broker-tiers {{BROKER_TIERS}} \
+    --num-http-connections {{NUM_HTTP_CONNECTIONS}} \
+    --num-merge-buffers {{NUM_MERGE_BUFFERS}}
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/broker.conf
+[program:broker]
+command=$DRUID_HOME/bin/run-druid broker $DRUID_CLUSTER_CONFIG/query
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/broker.log
+EOF
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/router.conf
+[program:router]
+command=$DRUID_HOME/bin/run-druid router $DRUID_CLUSTER_CONFIG/query
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/router.log
+EOF
+
+chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/
+
+# start query server
+echo " >>druid>> starting apache druid $(date)"
+supervisord -c $DRUID_HOME/conf/supervisor/supervisord.conf
+
+$PYTHON $DRUID_HOME/scripts/druid/check_druid_status.py --component-name query --graceful-termination-param-name {{GRACEFUL_TERMINATION_PARAM_NAME}} --base-url {{DRUID_BASE_URL}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}

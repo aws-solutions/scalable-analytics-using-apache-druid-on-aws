@@ -1,0 +1,130 @@
+#!/bin/bash
+export SYSTEM_START_TIME=$(date +%s)
+
+YUM_CMD=$(which yum)
+APT_CMD=$(which apt-get)
+USER_NAME=druid-cluster
+
+useradd -m -U ${USER_NAME}
+
+if [[ ! -z $YUM_CMD ]]; then
+    echo " >>druid>> installing yum dependencies $(date)"
+    yum update -y && \
+        yum install -y java-11-amazon-corretto nc jq amazon-cloudwatch-agent nvme-cli && \
+        amazon-linux-extras install python3.8
+    PYTHON=python3.8
+elif [[ ! -z $APT_CMD ]]; then
+    echo " >>druid>> installing apt-get dependencies $(date)"
+    apt-get update
+    while apt-get install openjdk-11-jdk jq python3-pip nvme-cli --yes; [[ $? -ne 0 ]];
+    do
+        echo " >>druid>> waiting for apt lock. Will retry in 5 seconds. $(date)"
+        sleep 5
+    done
+
+    wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/{{CPU_ARCHITECTURE}}/latest/amazon-cloudwatch-agent.deb
+    dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+    pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+    chmod +x /usr/local/bin/cfn-*
+    PYTHON=python3
+fi
+export PATH=$PATH:/usr/local/bin:/opt/aws/bin
+
+echo " >>druid>> installing python dependencies $(date)"
+$PYTHON -m pip install -U pip
+$PYTHON -m pip install --no-input boto3 botocore requests jinja2 py-cpuinfo awscli supervisor tenacity
+chmod +x /usr/local/bin/aws
+chmod +x /usr/local/bin/supervisord
+
+export AWS_REGION={{REGION}}
+export AWS_DEFAULT_REGION={{REGION}}
+export AWS_USE_FIPS_ENDPOINT={{USE_FIPS_ENDPOINT}}
+
+RDS_CERT_HOME=/home/${USER_NAME}/rds-ca-certs
+mkdir -p "${RDS_CERT_HOME}"
+
+echo " >>druid>> downloading installation scripts $(date)"
+cd /home/${USER_NAME}
+
+while aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/druid-images/apache-druid-{{DRUID_VERSION}}-bin.tar.gz .; [[ $? -ne 0 ]];
+do
+  echo ">>druid>> Waiting for Druid image to be uploaded to S3 bucket. Will retry in 5 seconds. $(date)"
+  sleep 5
+done
+tar -xzf apache-druid-{{DRUID_VERSION}}-bin.tar.gz && mv apache-druid-{{DRUID_VERSION}} apache-druid
+
+export DRUID_HOME=/home/${USER_NAME}/apache-druid
+
+DRUID_SOLUTION_CONFIG=$DRUID_HOME/solution_config
+DRUID_RUNTIME_CONFIG=$DRUID_HOME/runtime_config
+DRUID_CLUSTER_CONFIG=$DRUID_HOME/conf/druid/cluster
+mkdir -p $DRUID_HOME/var/tmp $DRUID_SOLUTION_CONFIG $DRUID_RUNTIME_CONFIG
+
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/extensions/ $DRUID_HOME/extensions/
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/config/ $DRUID_SOLUTION_CONFIG/
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/scripts/ $DRUID_HOME/scripts/
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/ca-certs/ $RDS_CERT_HOME/
+
+echo " >>druid>> starting CloudWatch agent $(date)"
+sed -i \
+    -e "s|<DRUID_COMPONENT>|{{DRUID_COMPONENT}}|g" \
+    -e "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" \
+    $DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json
+
+cp -rf $DRUID_SOLUTION_CONFIG/_common $DRUID_CLUSTER_CONFIG/
+
+mkdir -p $DRUID_HOME/conf/supervisor/supervisord.d/ /var/log/supervisor/
+cp -f $DRUID_SOLUTION_CONFIG/supervisor/supervisord.conf $DRUID_HOME/conf/supervisor/supervisord.conf
+
+echo " >>druid>> creating keystore and trust store for internal TLS certificates $(date)"
+export RANDFILE=/tmp/.rnd
+export TLS_KEYSTORE_PASSWORD=$(openssl rand -base64 48 | cut -c1-"24")
+bash $DRUID_HOME/scripts/setup_tls_certificates.sh $DRUID_HOME/tls-certificates {{TLS_CERTIFICATE_SECRET_NAME}} "$TLS_KEYSTORE_PASSWORD"
+
+echo " >>druid>> retrieving AWS secrets $(date)"
+RDS_SECRET=$(aws secretsmanager get-secret-value --secret-id {{RDS_SECRET_NAME}} --output text --query SecretString)
+ADMIN_USER_SECRET=$(aws secretsmanager get-secret-value --secret-id {{ADMIN_USER_SECRET_NAME}} --output text --query SecretString)
+SYSTEM_USER_SECRET=$(aws secretsmanager get-secret-value --secret-id {{SYSTEM_USER_SECRET_NAME}} --output text --query SecretString)
+
+if [ ! -z "{{OIDC_CLIENT_SECRET_NAME}}" ]; then
+    OIDC_IDP_CLIENT_SECRET=$(aws secretsmanager get-secret-value --secret-id {{OIDC_CLIENT_SECRET_NAME}}  --output text --query SecretString)
+    export OIDC_CLIENT_SECRET=$(echo $OIDC_IDP_CLIENT_SECRET | jq -r .clientSecret)
+    export COOKIE_PASS_PHRASE=$(echo $OIDC_IDP_CLIENT_SECRET | jq -r .cookiePassphrase)
+fi
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/common_runtime_config.json
+{{COMMON_RUNTIME_CONFIG}}
+EOF
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/emitter_config.json
+{{EMITTER_CONFIG}}
+EOF
+
+echo " >>druid>> rendering druid configuration $(date)"
+export PYTHONPATH=$DRUID_HOME/scripts/druid
+$PYTHON $DRUID_HOME/scripts/druid/render_druid_config.py \
+    --cluster-name {{DRUID_CLUSTER_NAME}} \
+    --data-bucket {{S3_DATA_BUCKET}} \
+    --data-bucket-key-id {{S3_DATA_BUCKET_KEY_ID}} \
+    --data-bucket-prefix {{S3_DATA_BUCKET_PREFIX}} \
+    --database-name {{DB_NAME}} \
+    --rds-endpoint {{RDS_ADDRESS_ENDPOINT}} \
+    --rds-port {{RDS_PORT_ENDPOINT}} \
+    --rds-username $(echo $RDS_SECRET | jq -r .username) \
+    --druid-extensions {{DRUID_EXTENSIONS}} \
+    --zookeeper-ips {{ZOOKEEPER_IPS}} \
+    --oidc-client-id {{OIDC_CLIENT_ID}} \
+    --oidc-discovery-uri {{OIDC_DISCOVERY_URI}} \
+    --oidc-group-claim-name {{OIDC_GROUP_CLAIM_NAME}} \
+    --druid-base-url {{DRUID_BASE_URL}} \
+    --solution-version {{SOLUTION_VERSION}}
+
+# Set up environment variables for Druid to consume
+export METADATA_STORAGE_PASSWORD=$(echo $RDS_SECRET | jq -r .password)
+export DRUID_ADMIN_PASSWORD=$(echo $ADMIN_USER_SECRET | jq -r .password)
+export DRUID_INTERNAL_CLIENT_PASSWORD=$(echo $SYSTEM_USER_SECRET | jq -r .password)
+export DRUID_LOG_DIR=$DRUID_HOME/log
+
+COMMON_CONFIG_VERSION={{COMMON_CONFIG_VERSION}}

@@ -1,0 +1,176 @@
+#!/bin/bash
+YUM_CMD=$(which yum)
+APT_CMD=$(which apt-get)
+USER_NAME=druid-cluster
+
+useradd -m -U ${USER_NAME}
+
+if [[ ! -z $YUM_CMD ]]; then
+    echo " >>zookeeper>> installing yum dependencies $(date)"
+    yum update -y && \
+        yum install -y java-11-amazon-corretto nc jq amazon-cloudwatch-agent && \
+        amazon-linux-extras install python3.8
+    PYTHON=python3.8
+elif [[ ! -z $APT_CMD ]]; then
+    echo " >>zookeeper>> installing apt-get dependencies $(date)"
+    apt-get update
+    while apt-get install openjdk-11-jdk jq python3-pip --yes; [[ $? -ne 0 ]];
+    do
+        echo " >>zookeeper>> waiting for apt lock. Will retry in 5 seconds. $(date)"
+        sleep 5
+    done
+
+    wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/{{CPU_ARCHITECTURE}}/latest/amazon-cloudwatch-agent.deb
+    dpkg -i -E ./amazon-cloudwatch-agent.deb
+
+    pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+    chmod +x /usr/local/bin/cfn-*
+
+    PYTHON=python3
+fi
+export PATH=$PATH:/usr/local/bin:/opt/aws/bin
+
+echo " >>zookeeper>> installing python dependencies $(date)"
+$PYTHON -m pip install -U pip
+$PYTHON -m pip install --no-input boto3 botocore supervisor awscli
+chmod +x /usr/local/bin/aws
+chmod +x /usr/local/bin/supervisord
+
+export AWS_REGION={{REGION}}
+export AWS_DEFAULT_REGION={{REGION}}
+export AWS_USE_FIPS_ENDPOINT={{USE_FIPS_ENDPOINT}}
+export ZOOKEEPER_HOME=/home/${USER_NAME}/apache-zookeeper
+ZK_CONFIG_VERSION={{ZK_CONFIG_VERSION}}
+
+cd /home/${USER_NAME}/
+
+echo " >>zookeeper>> downloading zookeeper $(date)"
+while aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/zookeeper-images/apache-zookeeper-{{ZK_VERSION}}-bin.tar.gz .; [[ $? -ne 0 ]];
+do
+  echo ">>zookeeper>> Waiting for ZooKeeper image to be uploaded to S3 bucket. Will retry in 5 seconds. $(date)"
+  sleep 5
+done
+
+tar -xzf apache-zookeeper-{{ZK_VERSION}}-bin.tar.gz
+mv apache-zookeeper-{{ZK_VERSION}}-bin apache-zookeeper
+
+# Configure CloudWatch agent
+aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/cloudwatch-agent/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/
+sed -i "s|<DRUID_COMPONENT>|zookeeper|g" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+sed -i "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+# Start CloudWatch agent
+echo " >>zookeeper>> starting CloudWatch agent $(date)"
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+# Configure Zookeeper
+echo " >>zookeeper>> setting up zookeeper configuration $(date)"
+mkdir -p $ZOOKEEPER_HOME/data/zk
+mkdir -p $ZOOKEEPER_HOME/data/zklogs
+
+echo {{ZK_MY_ID}} > $ZOOKEEPER_HOME/data/zk/myid
+
+cat <<EOF > $ZOOKEEPER_HOME/conf/zoo.cfg.dynamic
+{{ZK_SERVERS}}
+EOF
+
+cat <<EOF > $ZOOKEEPER_HOME/conf/zoo.cfg
+clientPort=2181
+tickTime=2000
+dataDir=$ZOOKEEPER_HOME/data/zk
+dataLogDir=$ZOOKEEPER_HOME/data/zklogs
+initLimit=5
+syncLimit=2
+maxClientCnxns=0
+standaloneEnabled=false
+reconfigEnabled=true
+4lw.commands.whitelist=*
+skipACL=yes
+autopurge.snapRetainCount=5
+autopurge.purgeInterval=1
+dynamicConfigFile=$ZOOKEEPER_HOME/conf/zoo.cfg.dynamic
+EOF
+
+# Detach ENI from existing instance
+ENI_ATTACHMENT_ID=`aws ec2 describe-network-interfaces --query 'NetworkInterfaces[].Attachment.AttachmentId' --filters Name=description,Values={{ZK_NODE_ID}} Name=tag:aws:cloudformation:stack-id,Values={{STACK_ID}} --output text`
+if [ ! -z "$ENI_ATTACHMENT_ID" ]; then
+    echo " >>zookeeper>> detaching ENI attachment $ENI_ATTACHMENT_ID $(date)"
+    aws ec2 detach-network-interface --attachment-id $ENI_ATTACHMENT_ID --force
+    sleep 30
+fi
+
+TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+INSTANCE_ID=`curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id`
+ENI_INTERFACE_ID=`aws ec2 describe-network-interfaces --query 'NetworkInterfaces[].NetworkInterfaceId' --filters Name=description,Values={{ZK_NODE_ID}} Name=tag:aws:cloudformation:stack-id,Values={{STACK_ID}} --output text`
+ENI_INTERFACE_INFO=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_INTERFACE_ID)
+ENI_IP=$(echo $ENI_INTERFACE_INFO | jq -r '.NetworkInterfaces[0].PrivateIpAddress')
+
+echo " >>zookeeper>> attaching ENI interface $ENI_INTERFACE_ID to $INSTANCE_ID $(date)"
+aws ec2 attach-network-interface --network-interface-id $ENI_INTERFACE_ID --instance-id $INSTANCE_ID --device-index 1
+sleep 30
+
+# Configure secondary network interface on Ubuntu
+if [[ ! -z $APT_CMD ]]; then
+    ENI_SUBNET_ID=$(echo $ENI_INTERFACE_INFO | jq -r '.NetworkInterfaces[0].SubnetId')
+    ENI_MASK_LENGTH=$(aws ec2 describe-subnets --subnet-ids $ENI_SUBNET_ID | jq -r '.Subnets[0].CidrBlock' | awk -F '/' '{print $2}')
+    INTFERFACE_NAME=$(ip -j link show | jq -r '.[] | select(.operstate=="DOWN") | .ifname')
+    DEFAULT_GW_IP=$(ip route | awk '/default/ { print $3 }')
+    cat <<EOF > /etc/netplan/99_config.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ${INTFERFACE_NAME}:
+      addresses:
+       - ${ENI_IP}/${ENI_MASK_LENGTH}
+      dhcp4: no
+      routes:
+       - to: 0.0.0.0/0
+         via: ${DEFAULT_GW_IP}
+         table: 1000
+       - to: ${ENI_IP}
+         via: 0.0.0.0
+         scope: link
+         table: 1000
+      routing-policy:
+        - from: ${ENI_IP}
+          table: 1000
+EOF
+    netplan apply
+fi
+
+mkdir -p $ZOOKEEPER_HOME/scripts/
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/scripts/zk/ $ZOOKEEPER_HOME/scripts/
+aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/config/zk/ $ZOOKEEPER_HOME/conf/
+
+mkdir -p $ZOOKEEPER_HOME/supervisor/supervisord.d/
+mkdir -p /var/log/supervisor/
+aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/supervisor/supervisord.conf $ZOOKEEPER_HOME/supervisor/supervisord.conf
+
+mkdir -p $ZOOKEEPER_HOME/logs/
+
+cat <<EOF > $ZOOKEEPER_HOME/supervisor/supervisord.d/zookeeper.conf
+[program:zookeeper]
+command=$ZOOKEEPER_HOME/bin/zkServer.sh start-foreground
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=$ZOOKEEPER_HOME/logs/zookeeper.log
+EOF
+
+chown -R ${USER_NAME}:${USER_NAME} $ZOOKEEPER_HOME
+
+MEMORY_SIZE=$(free -m | awk '/Mem/{print $2}')
+export ZK_SERVER_HEAP=$(printf "%.0f" $(echo "$MEMORY_SIZE * 0.8" | bc))
+export SERVER_JVMFLAGS="-Duser.timezone=UTC -Djute.maxbuffer=15728640"
+
+echo " >>zookeeper>> starting zookeeper server $(date)"
+supervisord -c $ZOOKEEPER_HOME/supervisor/supervisord.conf
+
+# Start cloudwatch metrics script for ZK as a cron job
+crontab -l > /tmp/mycrontab
+echo "* * * * * sudo -u ${USER_NAME} $PYTHON $ZOOKEEPER_HOME/scripts/zkMetrics.py --zookeeper-home $ZOOKEEPER_HOME --region {{REGION}} --cluster-name {{DRUID_CLUSTER_NAME}}" > /tmp/mycrontab
+crontab /tmp/mycrontab
+
+sh $ZOOKEEPER_HOME/scripts/health_check.sh $ENI_IP
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}

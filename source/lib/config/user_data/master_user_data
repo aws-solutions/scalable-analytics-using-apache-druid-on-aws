@@ -1,0 +1,44 @@
+{{COMMON_USER_DATA}}
+MASTER_CONFIG_VERSION={{MASTER_CONFIG_VERSION}}
+
+cp -rf $DRUID_SOLUTION_CONFIG/master $DRUID_CLUSTER_CONFIG/
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/coordinator.json
+{{COORDINATOR_RUNTIME_CONFIG}}
+EOF
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/overlord.json
+{{OVERLORD_RUNTIME_CONFIG}}
+EOF
+
+echo " >>druid>> rendering jvm configuration $(date)"
+$PYTHON $DRUID_HOME/scripts/druid/render_jvm_config.py \
+    --component master \
+    --region {{REGION}}
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/overlord.conf
+[program:overlord]
+command=$DRUID_HOME/bin/run-druid overlord $DRUID_CLUSTER_CONFIG/master
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/overlord.log
+EOF
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/coordinator.conf
+[program:coordinator]
+command=$DRUID_HOME/bin/run-druid coordinator $DRUID_CLUSTER_CONFIG/master
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/coordinator.log
+EOF
+
+# change ownership of ${USER_NAME} home directory
+chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/
+
+echo " >>druid>> starting apache druid $(date)"
+supervisord -c $DRUID_HOME/conf/supervisor/supervisord.conf
+
+$PYTHON $DRUID_HOME/scripts/druid/check_druid_status.py --component-name master --graceful-termination-param-name {{GRACEFUL_TERMINATION_PARAM_NAME}} --base-url {{DRUID_BASE_URL}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}

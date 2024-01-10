@@ -1,0 +1,140 @@
+{
+    "agent": { "metrics_collection_interval": 60 },
+    "metrics": {
+        "namespace": "AWSSolutions/Druid",
+        "metrics_collected": {
+            "cpu": {
+                "resources": ["*"],
+                "measurement": [
+                    "cpu_usage_active",
+                    "cpu_usage_idle",
+                    "cpu_usage_guest",
+                    "cpu_usage_system"
+                ],
+                "totalcpu": false,
+                "metrics_collection_interval": 10
+            },
+            "disk": {
+                "resources": ["*"],
+                "measurement": ["free", "total", "used"],
+                "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs"],
+                "metrics_collection_interval": 60
+            },
+            "diskio": {
+                "resources": ["*"],
+                "measurement": ["reads", "writes", "read_time", "write_time", "io_time"],
+                "metrics_collection_interval": 60
+            },
+            "mem": {
+                "measurement": ["mem_used", "mem_cached", "mem_total"],
+                "metrics_collection_interval": 60
+            }
+        },
+        "append_dimensions": {
+            "ImageId": "${aws:ImageId}",
+            "InstanceId": "${aws:InstanceId}",
+            "InstanceType": "${aws:InstanceType}",
+            "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+        },
+        "aggregation_dimensions": [
+            ["AutoScalingGroupName", "InstanceId", "InstanceType"],
+            ["AutoScalingGroupName"],
+            ["AutoScalingGroupName", "InstanceId", "fstype", "path"]
+        ],
+        "force_flush_interval": 30
+    },
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/var/log/cloud-init-output.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/var/log/cloud-init-output.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/var/log/messages",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/var/log/messages",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/var/log/supervisor/**.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/var/log/supervisor/supervisord.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/var/log/audit/audit.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/var/log/audit/audit.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/coordinator.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/coordinator.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/overlord.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/overlord.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/router.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/router.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/broker.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/broker.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/middleManager.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/middleManager.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/indexer/**.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/indexer/logs",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/historical.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/historical.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-zookeeper/logs/zookeeper.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "zookeeper/{instance_id}/home/druid-cluster/apache-zookeeper/logs/zookeeper.log",
+                        "timezone": "UTC"
+                    },
+                    {
+                        "file_path": "/home/druid-cluster/apache-druid/log/ssm_automation.log",
+                        "log_group_name": "/aws/solutions/druid/<DRUID_CLUSTER_NAME>",
+                        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/home/druid-cluster/apache-druid/log/ssm_automation.log",
+                        "timezone": "UTC"
+                    }
+                ]
+            }
+        },
+        "log_stream_name": "<DRUID_COMPONENT>/{instance_id}/default/log",
+        "force_flush_interval": 15
+    }
+}

@@ -1,0 +1,759 @@
+apiVersion: "druid.apache.org/v1alpha1"
+kind: "Druid"
+metadata:
+  name: {{{cluster_name}}}
+spec:
+  image: {{{druid_image_uri}}}
+  startScript: /druid.sh
+  securityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+    runAsGroup: 1000
+  services:
+    - spec:
+        type: ClusterIP
+        clusterIP: None
+  commonConfigMountPath: "/opt/druid/conf/druid/cluster/_common"
+  jvm.options: |-
+    -server
+    -XX:+UseG1GC
+    -XX:+ExitOnOutOfMemoryError
+    -Duser.timezone=UTC
+    -Dfile.encoding=UTF-8
+    -Dlog4j.debug
+    -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+    -Djava.io.tmpdir=/opt/druid/tmp
+  log4j.config: |-
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <Configuration status="WARN">
+        <Appenders>
+            <Console name="Console" target="SYSTEM_OUT">
+                <PatternLayout pattern="%d{ISO8601} %p [%t] %c - %m%n"/>
+            </Console>
+        </Appenders>
+        <Loggers>
+            <Root level="info">
+                <AppenderRef ref="Console"/>
+            </Root>
+        </Loggers>
+    </Configuration>
+  common.runtime.properties: |
+
+    # Zookeeper
+    druid.zk.service.host={{{zookeeper_hosts}}}
+    druid.zk.paths.base=/druid
+    druid.zk.service.compress=false
+    druid.zk.service.sessionTimeoutMs=3600000
+    druid.zk.service.connectionTimeoutMs=3600000
+
+    # Metadata Store
+    druid.metadata.storage.type=postgresql
+    druid.metadata.storage.connector.connectURI=jdbc:postgresql://{{{rds_endpoint}}}:{{{rds_port}}}/{{{rds_database_name}}}
+    druid.metadata.storage.connector.user=${env:METADATA_STORAGE_USERNAME}
+    druid.metadata.storage.connector.password=${env:METADATA_STORAGE_PASSWORD}
+    druid.metadata.postgres.ssl.useSSL=true
+    druid.metadata.postgres.ssl.sslRootCert=/opt/druid/ca-certs/rds-bundle.pem
+    druid.metadata.postgres.ssl.sslMode=verify-full
+
+    # Deep Storage
+    druid.storage.type=s3
+    druid.storage.bucket={{{data_bucket}}}
+    druid.storage.disableAcl=true
+    {{#data_bucket_key_id}}
+    druid.storage.sse.type=kms
+    druid.storage.sse.kms.keyId={{{data_bucket_key_id}}}
+    {{/data_bucket_key_id}}
+    {{^data_bucket_key_id}}
+    druid.storage.sse.type=s3
+    {{/data_bucket_key_id}}
+    druid.storage.baseKey={{{data_bucket_prefix}}}
+
+    druid.indexer.logs.type=file
+
+    #
+    # Extensions
+    #
+    druid.extensions.loadList={{{druid_extensions}}}
+
+    #
+    # Metrics emitter
+    #
+    druid.emitter=cloudwatch
+    druid.emitter.cloudwatch.clusterName={{{cluster_name}}}
+    druid.emitter.cloudwatch.solutionVersion={{{solution_version}}}
+
+    #
+    # Service discovery
+    #
+    druid.selectors.indexing.serviceName=druid/overlord
+    druid.selectors.coordinator.serviceName=druid/coordinator
+
+    #
+    # Security
+    #
+    druid.server.hiddenProperties=["druid.metadata.storage.connector.password", "druid.auth.authenticator.basic.initialAdminPassword", "druid.auth.authenticator.basic.initialInternalClientPassword", "druid.auth.oidc.druidPassword", "druid.escalator.internalClientPassword", "druid.auth.oidc.clientSecret", "druid.server.https.keyStorePassword", "druid.client.https.trustStorePassword"]
+    druid.server.http.enableForwardedRequestCustomizer=true
+
+    # Storage type of double columns
+    # ommiting this will lead to index double as float at the storage layer
+    druid.indexing.doubleStorage=double
+
+    #
+    # SQL
+    #
+    druid.sql.enable=true
+
+    #
+    # Authentication and authorisation
+    #
+    {{#oidc_client_id}}
+    druid.auth.authenticatorChain=["basic", "jwt", "oidc"]
+    {{/oidc_client_id}}
+    {{^oidc_client_id}}
+    druid.auth.authenticatorChain=["basic"]
+    {{/oidc_client_id}}
+    druid.auth.authenticator.basic.type=basic
+    druid.auth.authenticator.basic.initialAdminPassword=${env:DRUID_ADMIN_PASSWORD}
+    druid.auth.authenticator.basic.initialInternalClientPassword=${env:DRUID_INTERNAL_CLIENT_PASSWORD}
+    druid.auth.authenticator.basic.credentialsValidator.type=metadata
+    druid.auth.authenticator.basic.skipOnFailure=false
+    druid.auth.authenticator.basic.authorizerName=basic
+
+    {{#oidc_client_id}}
+    druid.auth.authenticator.oidc.type=oidc
+    druid.auth.oidc.cookiePassphrase=${env:COOKIE_PASS_PHRASE}
+    druid.auth.oidc.enableCustomSslContext=false
+    druid.auth.oidc.clientID={{{oidc_client_id}}}
+    druid.auth.oidc.clientSecret=${env:OIDC_CLIENT_SECRET}
+    druid.auth.oidc.discoveryURI={{{oidc_discovery_uri}}}
+    druid.auth.oidc.druidBaseUrl=https://{{{external_domain}}}
+    druid.auth.oidc.druidUsername=druid_system
+    druid.auth.oidc.druidPassword=${env:DRUID_INTERNAL_CLIENT_PASSWORD}
+    druid.auth.authenticator.oidc.authorizerName=oidc
+    druid.auth.authenticator.jwt.type=jwt
+    druid.auth.authenticator.jwt.authorizerName=oidc
+    {{/oidc_client_id}}
+
+    {{#oidc_group_claim_name}}
+    druid.auth.oidc.groupClaimName={{{oidc_group_claim_name}}}
+    {{/oidc_group_claim_name}}
+
+    druid.escalator.type=basic
+    druid.escalator.internalClientUsername=druid_system
+    druid.escalator.internalClientPassword=${env:DRUID_INTERNAL_CLIENT_PASSWORD}
+    druid.escalator.authorizerName=basic
+
+    {{#oidc_client_id}}
+    druid.auth.authorizers=["basic", "oidc"]
+    druid.auth.authorizer.oidc.type=oidc
+    {{/oidc_client_id}}
+    {{^oidc_client_id}}
+    druid.auth.authorizers=["basic"]
+    {{/oidc_client_id}}
+    druid.auth.authorizer.basic.type=basic
+    druid.auth.authorizer.basic.enableCacheNotifications=true
+    druid.auth.authorizer.basic.roleProvider.type=context
+    druid.auth.authorizer.basic.initialAdminRole=admin
+
+    # custom runtime properties
+    {{#common_runtime_properties}}
+    {{{key}}}={{{value}}}
+    {{/common_runtime_properties}}
+  metricDimensions.json: |-
+    {
+      "query/time" : { "dimensions" : ["dataSource", "type"], "type" : "timer"},
+      "query/bytes" : { "dimensions" : ["dataSource", "type"], "type" : "count"},
+      "query/node/time" : { "dimensions" : ["server"], "type" : "timer"},
+      "query/node/ttfb" : { "dimensions" : ["server"], "type" : "timer"},
+      "query/node/bytes" : { "dimensions" : ["server"], "type" : "count"},
+      "query/node/backpressure": { "dimensions" : ["server"], "type" : "timer"},
+      "query/intervalChunk/time" : { "dimensions" : [], "type" : "timer"},
+
+      "query/segment/time" : { "dimensions" : [], "type" : "timer"},
+      "query/wait/time" : { "dimensions" : [], "type" : "timer"},
+      "segment/scan/pending" : { "dimensions" : [], "type" : "gauge"},
+      "query/segmentAndCache/time" : { "dimensions" : [], "type" : "timer" },
+      "query/cpu/time" : { "dimensions" : ["dataSource", "type"], "type" : "timer" },
+
+      "query/count" : { "dimensions" : [], "type" : "count" },
+      "query/success/count" : { "dimensions" : [], "type" : "count" },
+      "query/failed/count" : { "dimensions" : [], "type" : "count" },
+      "query/interrupted/count" : { "dimensions" : [], "type" : "count" },
+      "query/timeout/count" : { "dimensions" : [], "type" : "count" },
+
+      "query/cache/delta/numEntries" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/sizeBytes" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/hits" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/misses" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/evictions" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/hitRate" : { "dimensions" : [], "type" : "count", "convertRange" : true },
+      "query/cache/delta/averageBytes" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/timeouts" : { "dimensions" : [], "type" : "count" },
+      "query/cache/delta/errors" : { "dimensions" : [], "type" : "count" },
+
+      "query/cache/total/numEntries" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/sizeBytes" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/hits" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/misses" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/evictions" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/hitRate" : { "dimensions" : [], "type" : "gauge", "convertRange" : true },
+      "query/cache/total/averageBytes" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/timeouts" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/total/errors" : { "dimensions" : [], "type" : "gauge" },
+
+      "ingest/events/thrownAway" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/events/unparseable" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/events/duplicate" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/events/processed" : { "dimensions" : ["dataSource", "taskType", "taskId"], "type" : "count" },
+      "ingest/events/messageGap" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "ingest/rows/output" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/persists/count" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/persists/time" : { "dimensions" : ["dataSource"], "type" : "timer" },
+      "ingest/persists/cpu" : { "dimensions" : ["dataSource"], "type" : "timer" },
+      "ingest/persists/backPressure" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "ingest/persists/failed" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/handoff/failed" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "ingest/merge/time" : { "dimensions" : ["dataSource"], "type" : "timer" },
+      "ingest/merge/cpu" : { "dimensions" : ["dataSource"], "type" : "timer" },
+
+      "ingest/kafka/lag" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "ingest/kafka/maxLag" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "ingest/kafka/avgLag" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+
+      "task/success/count" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "task/failed/count" : { "dimensions" : ["dataSource"], "type" : "count" },
+      "task/running/count" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "task/pending/count" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "task/waiting/count" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+
+      "taskSlot/total/count" : { "dimensions" : [], "type" : "gauge" },
+      "taskSlot/idle/count" : { "dimensions" : [], "type" : "gauge" },
+      "taskSlot/busy/count" : { "dimensions" : [], "type" : "gauge" },
+      "taskSlot/lazy/count" : { "dimensions" : [], "type" : "gauge" },
+      "taskSlot/blacklisted/count" : { "dimensions" : [], "type" : "gauge" },
+
+      "task/run/time" : { "dimensions" : ["dataSource", "taskType"], "type" : "timer" },
+      "segment/added/bytes" : { "dimensions" : ["dataSource", "taskType"], "type" : "count" },
+      "segment/moved/bytes" : { "dimensions" : ["dataSource", "taskType"], "type" : "count" },
+      "segment/nuked/bytes" : { "dimensions" : ["dataSource", "taskType"], "type" : "count" },
+
+      "segment/assigned/count" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/moved/count" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/dropped/count" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/deleted/count" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/unneeded/count" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/unavailable/count" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "segment/underReplicated/count" : { "dimensions" : ["dataSource", "tier"], "type" : "gauge" },
+      "segment/cost/raw" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/cost/normalization" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/cost/normalized" : { "dimensions" : ["tier"], "type" : "count" },
+      "segment/loadQueue/size" : { "dimensions" : ["server"], "type" : "gauge" },
+      "segment/loadQueue/failed" : { "dimensions" : ["server"], "type" : "gauge" },
+      "segment/loadQueue/count" : { "dimensions" : ["server"], "type" : "gauge" },
+      "segment/dropQueue/count" : { "dimensions" : ["server"], "type" : "gauge" },
+      "segment/size" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "segment/overShadowed/count" : { "dimensions" : [], "type" : "gauge" },
+
+      "segment/max" : { "dimensions" : [], "type" : "gauge"},
+      "segment/used" : { "dimensions" : ["dataSource", "tier", "priority"], "type" : "gauge" },
+      "segment/usedPercent" : { "dimensions" : ["dataSource", "tier", "priority"], "type" : "gauge", "convertRange" : true },
+      "segment/pendingDelete" : { "dimensions" : [], "type" : "gauge"},
+
+      "jvm/pool/committed" : { "dimensions" : ["poolKind", "poolName"], "type" : "gauge" },
+      "jvm/pool/init" : { "dimensions" : ["poolKind", "poolName"], "type" : "gauge" },
+      "jvm/pool/max" : { "dimensions" : ["poolKind", "poolName"], "type" : "gauge" },
+      "jvm/pool/used" : { "dimensions" : ["poolKind", "poolName"], "type" : "gauge" },
+      "jvm/bufferpool/count" : { "dimensions" : ["bufferpoolName"], "type" : "gauge" },
+      "jvm/bufferpool/used" : { "dimensions" : ["bufferpoolName"], "type" : "gauge" },
+      "jvm/bufferpool/capacity" : { "dimensions" : ["bufferpoolName"], "type" : "gauge" },
+      "jvm/mem/init" : { "dimensions" : ["memKind"], "type" : "gauge" },
+      "jvm/mem/max" : { "dimensions" : ["memKind"], "type" : "gauge" },
+      "jvm/mem/used" : { "dimensions" : ["memKind"], "type" : "gauge" },
+      "jvm/mem/committed" : { "dimensions" : ["memKind"], "type" : "gauge" },
+      "jvm/gc/count" : { "dimensions" : ["gcName", "gcGen"], "type" : "count" },
+      "jvm/gc/cpu" : { "dimensions" : ["gcName", "gcGen"], "type" : "count" },
+
+      "ingest/events/buffered" : { "dimensions" : ["serviceName", "bufferCapacity"], "type" : "gauge"},
+
+      "sys/swap/free" : { "dimensions" : [], "type" : "gauge"},
+      "sys/swap/max" : { "dimensions" : [], "type" : "gauge"},
+      "sys/swap/pageIn" : { "dimensions" : [], "type" : "gauge"},
+      "sys/swap/pageOut" : { "dimensions" : [], "type" : "gauge"},
+      "sys/disk/write/count" : { "dimensions" : ["fsDevName"], "type" : "count"},
+      "sys/disk/read/count" : { "dimensions" : ["fsDevName"], "type" : "count"},
+      "sys/disk/write/size" : { "dimensions" : ["fsDevName"], "type" : "count"},
+      "sys/disk/read/size" : { "dimensions" : ["fsDevName"], "type" : "count"},
+      "sys/net/write/size" : { "dimensions" : [], "type" : "count"},
+      "sys/net/read/size" : { "dimensions" : [], "type" : "count"},
+      "sys/fs/used" : { "dimensions" : ["fsDevName", "fsDirName", "fsTypeName", "fsSysTypeName", "fsOptions"], "type" : "gauge"},
+      "sys/fs/max" : { "dimensions" : ["fsDevName", "fsDirName", "fsTypeName", "fsSysTypeName", "fsOptions"], "type" : "gauge"},
+      "sys/mem/used" : { "dimensions" : [], "type" : "gauge"},
+      "sys/mem/max" : { "dimensions" : [], "type" : "gauge"},
+      "sys/storage/used" : { "dimensions" : ["fsDirName"], "type" : "gauge"},
+      "sys/cpu" : { "dimensions" : ["cpuName", "cpuTime"], "type" : "gauge"},
+
+      "coordinator-segment/count" : { "dimensions" : ["dataSource"], "type" : "gauge" },
+      "historical-segment/count" : { "dimensions" : ["dataSource", "tier", "priority"], "type" : "gauge" },
+
+      "jetty/numOpenConnections" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/caffeine/total/requests" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/caffeine/total/loadTime" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/caffeine/total/evictionBytes" : { "dimensions" : [], "type" : "gauge" },
+      "query/cache/memcached/total" : { "dimensions" : ["[MEM] Reconnecting Nodes (ReconnectQueue)",
+        "[MEM] Request Rate: All",
+        "[MEM] Average Bytes written to OS per write",
+        "[MEM] Average Bytes read from OS per read",
+        "[MEM] Response Rate: All (Failure + Success + Retry)",
+        "[MEM] Response Rate: Retry",
+        "[MEM] Response Rate: Failure",
+        "[MEM] Response Rate: Success"],
+        "type" : "gauge" },
+      "query/cache/caffeine/delta/requests" : { "dimensions" : [], "type" : "count" },
+      "query/cache/caffeine/delta/loadTime" : { "dimensions" : [], "type" : "count" },
+      "query/cache/caffeine/delta/evictionBytes" : { "dimensions" : [], "type" : "count" },
+      "query/cache/memcached/delta" : { "dimensions" : ["[MEM] Reconnecting Nodes (ReconnectQueue)",
+        "[MEM] Request Rate: All",
+        "[MEM] Average Bytes written to OS per write",
+        "[MEM] Average Bytes read from OS per read",
+        "[MEM] Response Rate: All (Failure + Success + Retry)",
+        "[MEM] Response Rate: Retry",
+        "[MEM] Response Rate: Failure",
+        "[MEM] Response Rate: Success"],
+        "type" : "count" }
+    }
+  deleteOrphanPvc: true
+  volumeMounts:
+    - mountPath: /opt/druid/tmp
+      name: tmp-volume
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+  env:
+    - name: AWS_USE_FIPS_ENDPOINT
+      value: "{{use_fips_endpoint}}"
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: METADATA_STORAGE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: rds-password
+    - name: METADATA_STORAGE_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: rds-username
+    - name: DRUID_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: druid-admin-password
+    - name: DRUID_INTERNAL_CLIENT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: druid-internal-client-password
+    {{#oidc_client_id}}
+    - name: COOKIE_PASS_PHRASE
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: cookie-pass-phrase
+    - name: OIDC_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: druid-secret
+          key: oidc-client-secret
+    {{/oidc_client_id}}
+  serviceAccount: druid-application-sa
+
+  nodes:
+    brokers:
+      nodeType: "broker"
+      druid.port: 8082
+      nodeConfigMountPath: "/opt/druid/conf/druid/cluster/query/broker"
+      replicas: {{broker_replica_cnt}}
+      livenessProbe:
+          initialDelaySeconds: {{initial_probe_delay_seconds}}
+          httpGet:
+            path: /status/health
+            port: 8082
+      readinessProbe:
+          initialDelaySeconds: {{initial_probe_delay_seconds}}
+          httpGet:
+            path: /status/health
+            port: 8082
+      runtime.properties: |
+        druid.service=druid/broker
+        druid.processing.tmpDir=/opt/druid/tmp
+
+        # custom runtime properties
+        {{#broker_runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/broker_runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{broker_max_ram_percentage}}
+        -XX:MinRAMPercentage={{broker_min_ram_percentage}}
+        -XX:ActiveProcessorCount={{broker_processor_count}}
+      resources:
+        requests:
+          cpu: {{broker_request_cpu}}
+          memory: {{broker_request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - druid-query
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - broker
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}
+
+    coordinators:
+      nodeType: "coordinator"
+      druid.port: 8081
+      nodeConfigMountPath: "/opt/druid/conf/druid/cluster/master/coordinator-overlord"
+      replicas: {{coordinator_replica_cnt}}
+      livenessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8081
+      readinessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8081
+      runtime.properties: |
+        druid.service=druid/coordinator
+        druid.coordinator.asOverlord.enabled=false
+
+        # custom runtime properties
+        {{#coordinator_runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/coordinator_runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{coordinator_max_ram_percentage}}
+        -XX:MinRAMPercentage={{coordinator_min_ram_percentage}}
+        -XX:ActiveProcessorCount={{coordinator_processor_count}}
+      resources:
+        requests:
+          cpu: {{coordinator_request_cpu}}
+          memory: {{coordinator_request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - druid-master
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - coordinator
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}
+
+    overlords:
+      nodeType: "overlord"
+      druid.port: 8090
+      nodeConfigMountPath: "/opt/druid/conf/druid/cluster/master/coordinator-overlord"
+      replicas: {{overlord_replica_cnt}}
+      livenessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8090
+      readinessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8090
+      runtime.properties: |
+        druid.service=druid/overlord
+
+        # custom runtime properties
+        {{#overlord_runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/overlord_runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{overlord_max_ram_percentage}}
+        -XX:MinRAMPercentage={{overlord_min_ram_percentage}}
+        -XX:ActiveProcessorCount={{overlord_processor_count}}
+      resources:
+        requests:
+          cpu: {{overlord_request_cpu}}
+          memory: {{overlord_request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - druid-master
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - overlord
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}
+
+    {{#historical_tiers}}
+    {{node_group_name}}:
+      nodeType: "historical"
+      druid.port: 8083
+      nodeConfigMountPath: "/opt/druid/conf/druid/cluster/data/historical"
+      replicas: {{replica_cnt}}
+      livenessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8083
+      readinessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8083
+      startUpProbes:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8083
+      runtime.properties: |
+        druid.service=druid/historical
+        druid.server.tier={{service_tier}}
+        druid.segmentCache.locations=[{\"path\":\"/opt/druid/data/segments\",\"maxSize\":\"{{segment_cache_volume_size}}Gi\"}]
+
+        # custom runtime properties
+        {{#runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{max_ram_percentage}}
+        -XX:MinRAMPercentage={{min_ram_percentage}}
+        -XX:ActiveProcessorCount={{processor_count}}
+      resources:
+        requests:
+          cpu: {{request_cpu}}
+          memory: {{request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - {{{node_group_label}}}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - historical
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: {{storage_class_name}}
+            resources:
+              requests:
+                storage: {{segment_cache_volume_size}}Gi
+      volumeMounts:
+        - mountPath: /opt/druid/data
+          name: data-volume
+    {{/historical_tiers}}
+
+    {{#middle_manager_tiers}}
+    {{node_group_name}}:
+      nodeType: middleManager
+      druid.port: 8091
+      nodeConfigMountPath: /opt/druid/conf/druid/cluster/data/middleManager
+      podDisruptionBudgetSpec:
+        maxUnavailable: 1
+      ports:
+        - containerPort: 8100
+          name: peon-0
+      replicas: {{replica_cnt}}
+      livenessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8091
+      readinessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8091
+      runtime.properties: |-
+        druid.service=druid/middleManager
+        druid.worker.category={{worker_category}}
+        druid.indexer.task.baseTaskDir=/opt/druid/data/baseTaskDir
+
+        # custom runtime properties
+        {{#runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{max_ram_percentage}}
+        -XX:MinRAMPercentage={{min_ram_percentage}}
+        -XX:ActiveProcessorCount={{processor_count}}
+      resources:
+        requests:
+          cpu: {{request_cpu}}
+          memory: {{request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - {{{node_group_label}}}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - middleManager
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}
+      volumeClaimTemplates:
+        - metadata:
+            name: data-volume
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: {{storage_class_name}}
+            resources:
+              requests:
+                storage: {{task_cache_volume_size}}Gi
+      volumeMounts:
+        - mountPath: /opt/druid/data
+          name: data-volume
+    {{/middle_manager_tiers}}
+     
+    routers:
+      nodeType: "router"
+      druid.port: 8088
+      nodeConfigMountPath: "/opt/druid/conf/druid/cluster/query/router"
+      replicas: {{router_replica_cnt}}
+      livenessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8088
+      readinessProbe:
+        initialDelaySeconds: {{initial_probe_delay_seconds}}
+        httpGet:
+          path: /status/health
+          port: 8088
+      ingressAnnotations:
+        kubernetes.io/ingress.class: alb
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/scheme: {{{alb_scheme}}}
+        {{^certificate_arn}}
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+        {{/certificate_arn}}
+        {{#certificate_arn}}
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+        alb.ingress.kubernetes.io/ssl-redirect: '443'
+        alb.ingress.kubernetes.io/ssl-policy: {{{alb_ssl_policy}}}
+        alb.ingress.kubernetes.io/certificate-arn: {{{certificate_arn}}}
+        external-dns.alpha.kubernetes.io/hostname: {{{external_domain}}}
+        {{/certificate_arn}}
+        alb.ingress.kubernetes.io/tags: {{{alb_tags}}}
+        alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+        alb.ingress.kubernetes.io/healthcheck-path: /status/health
+        {{{waf_annotation}}}
+      ingress:
+        rules:
+          - http:
+              paths:
+              - backend:
+                  service:
+                    name: druid-{{cluster_name}}-routers
+                    port:
+                      number: 8088
+                path: /
+                pathType: Prefix
+      runtime.properties: |
+        druid.service=druid/router
+        druid.router.defaultBrokerServiceName=druid/broker
+        druid.router.coordinatorServiceName=druid/coordinator
+        druid.router.managementProxy.enabled=true
+
+        # custom runtime properties
+        {{#router_runtime_properties}}
+        {{{key}}}={{{value}}}
+        {{/router_runtime_properties}}
+      extra.jvm.options: |-
+        -XX:MaxRAMPercentage={{router_max_ram_percentage}}
+        -XX:MinRAMPercentage={{router_min_ram_percentage}}
+        -XX:ActiveProcessorCount={{router_processor_count}}
+      resources:
+        requests:
+          cpu: {{router_request_cpu}}
+          memory: {{router_request_memory}}
+      {{#capacity_provider_ec2}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: druid/nodeType
+                    operator: In
+                    values:
+                      - druid-query
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: component
+                operator: In
+                values:
+                - router
+            topologyKey: kubernetes.io/hostname
+      {{/capacity_provider_ec2}}

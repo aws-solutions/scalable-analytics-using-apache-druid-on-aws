@@ -1,0 +1,55 @@
+{{COMMON_USER_DATA}}
+HISTORICAL_CONFIG_VERSION={{HISTORICAL_CONFIG_VERSION}}
+
+echo " >>druid>> mounting NVME disks $(date)"
+PATH_INDEX=2
+for NVME_PATH in $(nvme list -o json | jq '.Devices | map(select(.DevicePath != "/dev/nvme0n1").DevicePath) | sort | join(" ")' | tr -d '"')
+do
+    MOUNT_POINT=/mnt/disk${PATH_INDEX}
+    mkdir -p $MOUNT_POINT
+    mkfs.ext4 $NVME_PATH
+    mount -t ext4 $NVME_PATH $MOUNT_POINT
+    echo "$NVME_PATH $MOUNT_POINT auto noatime 0 0" | tee -a /etc/fstab
+    mkdir -p $MOUNT_POINT/var/druid/druidSegments
+    chown -R ${USER_NAME}:${USER_NAME} $MOUNT_POINT
+    PATH_INDEX=$(expr $PATH_INDEX + 1)
+done
+
+mkdir -p /mnt/disk2/var/tmp /mnt/disk2/var/druid/task /mnt/disk2/var/druid/processing
+
+sh -c 'echo "* soft nofile 800000" >> /etc/security/limits.conf'
+sh -c 'echo "* hard nofile 800000" >> /etc/security/limits.conf'
+sysctl -w vm.max_map_count=800000
+sh -c 'echo "vm.max_map_count=800000" >> /etc/sysctl.conf'
+sysctl -p
+
+cp -rf $DRUID_SOLUTION_CONFIG/historical $DRUID_CLUSTER_CONFIG/data/
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/historical.json
+{{HISTORICAL_RUNTIME_CONFIG}}
+EOF
+
+echo " >>druid>> rendering jvm configuration $(date)"
+$PYTHON $DRUID_HOME/scripts/druid/render_jvm_config.py \
+    --component historical \
+    --region {{REGION}} \
+    --service-tier {{SERVICE_TIER}} \
+    --service-priority {{SERVICE_PRIORITY}} \
+    --num-http-connections {{NUM_HTTP_CONNECTIONS}}
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/historical.conf
+[program:historical]
+command=$DRUID_HOME/bin/run-druid historical $DRUID_CLUSTER_CONFIG/data
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/historical.log
+EOF
+
+chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/ /mnt/disk2
+
+echo " >>druid>> starting apache druid $(date)"
+supervisord -c $DRUID_HOME/conf/supervisor/supervisord.conf
+
+$PYTHON $DRUID_HOME/scripts/druid/check_druid_status.py --component-name historical --graceful-termination-param-name {{GRACEFUL_TERMINATION_PARAM_NAME}} --base-url {{DRUID_BASE_URL}} --service-tier {{SERVICE_TIER}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}

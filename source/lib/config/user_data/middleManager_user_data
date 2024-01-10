@@ -1,0 +1,38 @@
+{{COMMON_USER_DATA}}
+MIDDLEMANAGER_CONFIG_VERSION={{MIDDLEMANAGER_CONFIG_VERSION}}
+
+mkdir -p /mnt/disk2/var/tmp
+mkdir -p /mnt/disk2/var/druid/task
+mkdir -p /mnt/disk2/var/druid/processing
+sudo chown -R ${USER_NAME}:${USER_NAME} /mnt/disk2/
+
+cp -rf $DRUID_SOLUTION_CONFIG/middleManager $DRUID_CLUSTER_CONFIG/data/
+
+cat <<EOF > $DRUID_RUNTIME_CONFIG/middleManager.json
+{{MIDDLEMANAGER_RUNTIME_CONFIG}}
+EOF
+
+echo " >>druid>> rendering jvm configuration $(date)"
+$PYTHON $DRUID_HOME/scripts/druid/render_jvm_config.py \
+    --component middleManager \
+    --region {{REGION}} \
+    --service-tier {{SERVICE_TIER}} \
+    --num-http-connections {{NUM_HTTP_CONNECTIONS}}
+
+cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/middleManager.conf
+[program:middleManager]
+command=$DRUID_HOME/bin/run-druid middleManager $DRUID_CLUSTER_CONFIG/data
+user=${USER_NAME}
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/middleManager.log
+EOF
+
+# change ownership of ${USER_NAME} home directory
+chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/
+
+echo " >>druid>> starting apache druid $(date)"
+supervisord -c $DRUID_HOME/conf/supervisor/supervisord.conf
+
+$PYTHON $DRUID_HOME/scripts/druid/check_druid_status.py --component-name middleManager --graceful-termination-param-name {{GRACEFUL_TERMINATION_PARAM_NAME}} --base-url {{DRUID_BASE_URL}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}
