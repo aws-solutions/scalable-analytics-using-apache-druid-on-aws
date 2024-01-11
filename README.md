@@ -77,9 +77,9 @@ Common application areas for Druid include:
 
 The following diagram represents the solution's architecture design for EC2 stack.
 
-![Diagram](images/solution_architecture_diagram.png)
+![Diagram](source/images/solution_architecture_diagram.png)
 
-For the architecture of EKS stack, please refer to the diagram located at `images/solution_architecture_diagram-eks.png`.
+For the architecture of EKS stack, please refer to the diagram located at `source/images/solution_architecture_diagram-eks.png`.
 
 ### Solution components
 
