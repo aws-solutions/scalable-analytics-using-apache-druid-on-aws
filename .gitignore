@@ -38,3 +38,5 @@ yarn-error.log*
 lerna-debug.log*
 *.pem
 **/instance-types/*
+
+.idea/*

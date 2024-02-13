@@ -37,7 +37,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # common request parameters
 requests_common_params = {
     'verify': False,
-    'auth': ('druid_system', os.getenv('DRUID_INTERNAL_CLIENT_PASSWORD'))
+    'auth': (os.getenv('DRUID_INTERNAL_CLIENT_USERNAME'), os.getenv('DRUID_INTERNAL_CLIENT_PASSWORD'))
 }
 
 

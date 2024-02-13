@@ -38,7 +38,7 @@ def merge_properties_with_json(properties_file_path, json_file_path):
     filtered_dict = {key: value for key, value in json_data.items(
     ) if not key.startswith("jvm.config.")}
     for key, value in sorted(filtered_dict.items()):
-        if isinstance(value, list):
+        if isinstance(value, list) or isinstance(value, dict):
             properties[key] = json.dumps(value)
         elif isinstance(value, bool):
             properties[key] = str(value).lower()
