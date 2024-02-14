@@ -102,6 +102,13 @@ cat <<EOF > $DRUID_RUNTIME_CONFIG/emitter_config.json
 {{EMITTER_CONFIG}}
 EOF
 
+# Set up environment variables for Druid to consume
+export METADATA_STORAGE_PASSWORD=$(echo $RDS_SECRET | jq -r .password)
+export DRUID_ADMIN_PASSWORD=$(echo $ADMIN_USER_SECRET | jq -r .password)
+export DRUID_INTERNAL_CLIENT_USERNAME=$(echo $SYSTEM_USER_SECRET | jq -r .username)
+export DRUID_INTERNAL_CLIENT_PASSWORD=$(echo $SYSTEM_USER_SECRET | jq -r .password)
+export DRUID_LOG_DIR=$DRUID_HOME/log
+
 echo " >>druid>> rendering druid configuration $(date)"
 export PYTHONPATH=$DRUID_HOME/scripts/druid
 $PYTHON $DRUID_HOME/scripts/druid/render_druid_config.py \
@@ -120,11 +127,5 @@ $PYTHON $DRUID_HOME/scripts/druid/render_druid_config.py \
     --oidc-group-claim-name {{OIDC_GROUP_CLAIM_NAME}} \
     --druid-base-url {{DRUID_BASE_URL}} \
     --solution-version {{SOLUTION_VERSION}}
-
-# Set up environment variables for Druid to consume
-export METADATA_STORAGE_PASSWORD=$(echo $RDS_SECRET | jq -r .password)
-export DRUID_ADMIN_PASSWORD=$(echo $ADMIN_USER_SECRET | jq -r .password)
-export DRUID_INTERNAL_CLIENT_PASSWORD=$(echo $SYSTEM_USER_SECRET | jq -r .password)
-export DRUID_LOG_DIR=$DRUID_HOME/log
 
 COMMON_CONFIG_VERSION={{COMMON_CONFIG_VERSION}}

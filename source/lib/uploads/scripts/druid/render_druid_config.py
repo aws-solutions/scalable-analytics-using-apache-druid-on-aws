@@ -113,7 +113,8 @@ def render_config(
             'oidc_group_claim_name': oidc_group_claim_name,
             'emitter_config': emitter_config,
             'druid_base_url': druid_base_url,
-            'solution_version': solution_version
+            'solution_version': solution_version,
+            'internal_client_username': os.getenv('DRUID_INTERNAL_CLIENT_USERNAME'),
         })
 
         with open(common_runtime_properties_file, mode='w', encoding='utf-8') as outfile:
