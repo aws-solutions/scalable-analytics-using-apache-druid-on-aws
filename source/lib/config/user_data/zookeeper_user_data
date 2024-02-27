@@ -113,7 +113,7 @@ sleep 30
 if [[ ! -z $APT_CMD ]]; then
     ENI_SUBNET_ID=$(echo $ENI_INTERFACE_INFO | jq -r '.NetworkInterfaces[0].SubnetId')
     ENI_MASK_LENGTH=$(aws ec2 describe-subnets --subnet-ids $ENI_SUBNET_ID | jq -r '.Subnets[0].CidrBlock' | awk -F '/' '{print $2}')
-    INTFERFACE_NAME=$(ip -j link show | jq -r '.[] | select(.operstate=="DOWN") | .ifname')
+    INTFERFACE_NAME=$(ip -j link show | jq -r '.[] | select((.ifname | test("^br-") | not) and .operstate == "DOWN") | .ifname')
     DEFAULT_GW_IP=$(ip route | awk '/default/ { print $3 }')
     cat <<EOF > /etc/netplan/99_config.yaml
 network:
