@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 import org.apache.druid.metadata.PasswordProvider;
 import org.joda.time.Duration;
 
+import java.util.List;
+
 public class OidcConfig {
     @JsonProperty
     private final String clientID;
@@ -38,6 +40,9 @@ public class OidcConfig {
 
     @JsonProperty
     private final String groupClaimName;
+
+    @JsonProperty
+    private final List<String> customScopes;
 
     @JsonProperty
     private final boolean enableCustomSslContext;
@@ -63,6 +68,7 @@ public class OidcConfig {
             @JsonProperty("clientSecret") PasswordProvider clientSecret,
             @JsonProperty("discoveryURI") String discoveryURI,
             @JsonProperty("groupClaimName") String groupClaimName,
+            @JsonProperty("customScopes") List<String> customScopes,
             @JsonProperty("enableCustomSslContext") boolean enableCustomSslContext,
             @JsonProperty("cookiePassphrase") PasswordProvider cookiePassphrase,
             @JsonProperty("readTimeout") Duration readTimeout,
@@ -73,6 +79,7 @@ public class OidcConfig {
         this.clientSecret = Preconditions.checkNotNull(clientSecret, "null clientSecret");
         this.discoveryURI = Preconditions.checkNotNull(discoveryURI, "null discoveryURI");
         this.groupClaimName = groupClaimName;
+        this.customScopes = customScopes;
         this.enableCustomSslContext = enableCustomSslContext;
         this.cookiePassphrase = Preconditions.checkNotNull(cookiePassphrase, "null cookiePassphrase");
         this.readTimeout = readTimeout == null ? Duration.millis(5000) : readTimeout;
@@ -99,6 +106,11 @@ public class OidcConfig {
     @JsonProperty
     public String getGroupClaimName() {
         return groupClaimName;
+    }
+
+    @JsonProperty
+    public List<String> getCustomScopes() {
+        return customScopes;
     }
 
     @JsonProperty
