@@ -125,6 +125,7 @@ $PYTHON $DRUID_HOME/scripts/druid/render_druid_config.py \
     --oidc-client-id {{OIDC_CLIENT_ID}} \
     --oidc-discovery-uri {{OIDC_DISCOVERY_URI}} \
     --oidc-group-claim-name {{OIDC_GROUP_CLAIM_NAME}} \
+    --oidc-custom-scopes {{OIDC_CUSTOM_SCOPES}} \
     --druid-base-url {{DRUID_BASE_URL}} \
     --solution-version {{SOLUTION_VERSION}}
 

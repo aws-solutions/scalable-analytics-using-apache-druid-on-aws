@@ -62,6 +62,8 @@ def parse_args():
                         help='Zookeeper IPs'),
     parser.add_argument('--oidc-group-claim-name', dest='oidc_group_claim_name', type=str, required=False,
                         nargs='?', const='', default='', help='OIDC group claim name'),
+    parser.add_argument('--oidc-custom-scopes', dest='oidc_custom_scopes', type=str, required=False,
+                        nargs='?', const='', default='', help='OIDC custom scopes'),
     parser.add_argument('--druid-base-url', dest='druid_base_url', type=str, required=False,
                         nargs='?', const='', default='', help='Base url of the druid cluster'),
     parser.add_argument('--solution-version', dest='solution_version', type=str, required=False,
@@ -85,6 +87,7 @@ def render_config(
         oidc_client_id=None,
         oidc_discovery_uri=None,
         oidc_group_claim_name=None,
+        oidc_custom_scopes=None,
         solution_version=None,
 ):
 
@@ -111,6 +114,7 @@ def render_config(
             'oidc_client_id': oidc_client_id,
             'oidc_discovery_uri': oidc_discovery_uri,
             'oidc_group_claim_name': oidc_group_claim_name,
+            'oidc_custom_scopes': oidc_custom_scopes,
             'emitter_config': emitter_config,
             'druid_base_url': druid_base_url,
             'solution_version': solution_version,
@@ -146,6 +150,7 @@ def main():
         oidc_client_id=args.oidc_client_id,
         oidc_discovery_uri=args.oidc_discovery_uri,
         oidc_group_claim_name=args.oidc_group_claim_name,
+        oidc_custom_scopes=args.oidc_custom_scopes,
         solution_version=args.solution_version)
 
 
