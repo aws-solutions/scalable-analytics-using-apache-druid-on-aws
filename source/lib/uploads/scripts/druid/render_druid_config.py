@@ -114,7 +114,7 @@ def render_config(
             'oidc_client_id': oidc_client_id,
             'oidc_discovery_uri': oidc_discovery_uri,
             'oidc_group_claim_name': oidc_group_claim_name,
-            'oidc_custom_scopes': oidc_custom_scopes,
+            'oidc_custom_scopes': json.dumps([e for e in oidc_custom_scopes[1:-1].split(',')]) if oidc_custom_scopes else None,
             'emitter_config': emitter_config,
             'druid_base_url': druid_base_url,
             'solution_version': solution_version,
