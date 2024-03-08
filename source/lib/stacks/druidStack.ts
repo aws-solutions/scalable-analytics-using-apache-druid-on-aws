@@ -142,7 +142,8 @@ export abstract class DruidStack extends cdk.Stack {
             runtime: new synthetics.Runtime(
                 'syn-nodejs-puppeteer-5.2',
                 synthetics.RuntimeFamily.NODEJS
-            ),            vpc: this.baseInfra.vpc,
+            ),
+            vpc: this.baseInfra.vpc,
             vpcSubnets: { subnets: this.baseInfra.vpc.privateSubnets },
             environmentVariables: { DRUID_ENDPOINT: druidEndpoint },
             test: synthetics.Test.custom({
