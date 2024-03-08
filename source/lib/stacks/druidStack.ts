@@ -139,8 +139,10 @@ export abstract class DruidStack extends cdk.Stack {
 
     protected createCanary(druidEndpoint: string): synthetics.Canary {
         return new synthetics.Canary(this, 'canary', {
-            runtime: synthetics.Runtime.SYNTHETICS_NODEJS_PUPPETEER_5_1,
-            vpc: this.baseInfra.vpc,
+            runtime: new synthetics.Runtime(
+                'syn-nodejs-puppeteer-5.2',
+                synthetics.RuntimeFamily.NODEJS
+            ),            vpc: this.baseInfra.vpc,
             vpcSubnets: { subnets: this.baseInfra.vpc.privateSubnets },
             environmentVariables: { DRUID_ENDPOINT: druidEndpoint },
             test: synthetics.Test.custom({
