@@ -426,6 +426,8 @@ export abstract class DruidEksBase extends Construct {
             oidc_discovery_uri: this.props.druidClusterParams.oidcIdpConfig?.discoveryURI,
             oidc_group_claim_name:
                 this.props.druidClusterParams.oidcIdpConfig?.groupClaimName,
+            oidc_custom_scopes:
+                this.props.druidClusterParams.oidcIdpConfig?.customScopes,
             alb_scheme: this.props.druidClusterParams.internetFacing
                 ? 'internet-facing'
                 : 'internal',

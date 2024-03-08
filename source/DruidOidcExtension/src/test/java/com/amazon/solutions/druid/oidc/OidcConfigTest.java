@@ -25,6 +25,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Arrays;
+
 public class OidcConfigTest {
     @Test
     public void canParseConfig() throws Exception {
@@ -36,6 +38,7 @@ public class OidcConfigTest {
                 + "  \"clientSecret\": \"testsecret\",\n"
                 + "  \"discoveryURI\": \"testdiscoveryuri\",\n"
                 + "  \"groupClaimName\": \"group\",\n"
+                + "  \"customScopes\": [\"groups\", \"druid\"],\n"
                 + "  \"enableCustomSslContext\": true,\n"
                 + "  \"cookiePassphrase\": \"testcookiePassphrase\",\n"
                 + "  \"readTimeout\": \"PT10S\",\n"
@@ -52,9 +55,9 @@ public class OidcConfigTest {
         Assert.assertEquals("testsecret", config.getClientSecret().getPassword());
         Assert.assertEquals("testdiscoveryuri", config.getDiscoveryURI());
         Assert.assertEquals("group", config.getGroupClaimName());
+        Assert.assertEquals(Arrays.asList("groups", "druid"), config.getCustomScopes());
         Assert.assertEquals(true, config.isEnableCustomSslContext());
         Assert.assertEquals("testcookiePassphrase", config.getCookiePassphrase().getPassword());
         Assert.assertEquals(10_000L, config.getReadTimeout().getMillis());
-
     }
 }

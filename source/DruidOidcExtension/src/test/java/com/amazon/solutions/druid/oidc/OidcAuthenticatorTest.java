@@ -33,6 +33,8 @@ import org.junit.Test;
 
 import com.google.inject.Provider;
 
+import java.util.Arrays;
+
 public class OidcAuthenticatorTest {
     private OidcConfig config;
     private Provider<SSLContext> provider;
@@ -50,15 +52,31 @@ public class OidcAuthenticatorTest {
         when(passwordProvider.getPassword()).thenReturn("secret");
         when(config.getDiscoveryURI()).thenReturn("http://localhost");
         when(config.getReadTimeout()).thenReturn(new Duration(10));
-
-        authenticator = new OidcAuthenticator("name", "authorizerName", config, provider);
     }
 
     @Test
     public void canInitialiseOidcFilter() {
+        authenticator = new OidcAuthenticator("name", "authorizerName", config, provider);
         Filter oidcFilter = authenticator.getFilter();
 
         assertNotNull(oidcFilter);
     }
 
+    @Test
+    public void canInitialiseOidcFilterWithoutCustomScopes() {
+        when(config.getCustomScopes()).thenReturn(null);
+        authenticator = new OidcAuthenticator("name", "authorizerName", config, provider);
+        Filter oidcFilter = authenticator.getFilter();
+
+        assertNotNull(oidcFilter);
+    }
+
+    @Test
+    public void canInitialiseOidcFilterWithCustomScopes() {
+        when(config.getCustomScopes()).thenReturn(Arrays.asList("groups", "druid"));
+        authenticator = new OidcAuthenticator("name", "authorizerName", config, provider);
+        Filter oidcFilter = authenticator.getFilter();
+
+        assertNotNull(oidcFilter);
+    }
 }

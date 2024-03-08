@@ -229,6 +229,10 @@ export class DruidAutoScalingGroup extends Construct {
                 asgContext.clusterParams.oidcIdpConfig?.groupClaimName,
                 ''
             ),
+            OIDC_CUSTOM_SCOPES: utils.ifUndefined(
+                JSON.stringify(asgContext.clusterParams.oidcIdpConfig?.customScopes),
+                ''
+            ),
             DRUID_BASE_URL: props.baseUrl,
             GRACEFUL_TERMINATION_PARAM_NAME: this.gracefulTerminationParam.parameterName,
             ADMIN_USER_SECRET_NAME:

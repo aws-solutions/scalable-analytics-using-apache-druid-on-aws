@@ -41,11 +41,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 @JsonTypeName("oidc")
 public class OidcAuthenticator implements Authenticator {
+    public static final String DEFAULT_SCOPE = "openid";
+
     private final String name;
     private final String authorizerName;
     private final Supplier<Config> pac4jConfigSupplier;
@@ -124,6 +128,14 @@ public class OidcAuthenticator implements Authenticator {
                 // ResourceRetriever is used to get Auth server configuration from
                 // "discoveryURI"
                 new CustomSSLResourceRetriever(oidcConfig.getReadTimeout().getMillis(), sslSocketFactory));
+
+        if (oidcConfig.getCustomScopes() != null) {
+            List<String> finalScopes = new ArrayList<>(oidcConfig.getCustomScopes());
+            if (!finalScopes.contains(DEFAULT_SCOPE)) {
+                finalScopes.add(DEFAULT_SCOPE);
+            }
+            oidcConf.setScope(String.join(" ", finalScopes));
+        }
 
         OidcClient oidcClient = new OidcClient(oidcConf);
         oidcClient.setUrlResolver(new DefaultUrlResolver(true));

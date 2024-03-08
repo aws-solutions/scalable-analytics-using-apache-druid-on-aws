@@ -301,6 +301,7 @@ export interface OidcIdpConfig {
     clientSecretArn: string;
     discoveryURI: string;
     groupClaimName?: string;
+    customScopes?: string[];
     groupRoleMappings?: Record<string, string[]>;
 }
 
