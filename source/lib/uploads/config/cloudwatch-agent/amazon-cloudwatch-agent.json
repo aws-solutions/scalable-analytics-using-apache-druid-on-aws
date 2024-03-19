@@ -1,6 +1,7 @@
 {
     "agent": { "metrics_collection_interval": 60 },
     "metrics": {
+        "endpoint_override": "https://monitoring<FIPS_ENDPOINT>.<AWS_REGION>.amazonaws.com",
         "namespace": "AWSSolutions/Druid",
         "metrics_collected": {
             "cpu": {
@@ -44,6 +45,7 @@
         "force_flush_interval": 30
     },
     "logs": {
+        "endpoint_override": "https://logs<FIPS_ENDPOINT>.<AWS_REGION>.amazonaws.com",
         "logs_collected": {
             "files": {
                 "collect_list": [

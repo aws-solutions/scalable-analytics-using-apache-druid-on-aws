@@ -56,11 +56,14 @@ mv apache-zookeeper-{{ZK_VERSION}}-bin apache-zookeeper
 
 # Configure CloudWatch agent
 aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/cloudwatch-agent/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/
-sed -i "s|<DRUID_COMPONENT>|zookeeper|g" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-sed -i "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
-# Start CloudWatch agent
 echo " >>zookeeper>> starting CloudWatch agent $(date)"
+sed -i \
+    -e "s|<DRUID_COMPONENT>|zookeeper|g" \
+    -e "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" \
+    -e "s|<AWS_REGION>|$AWS_REGION|g" \
+    -e "s|<FIPS_ENDPOINT>|$($AWS_USE_FIPS_ENDPOINT && echo -fips)|g" \
+    /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 # Configure Zookeeper
