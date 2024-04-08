@@ -15,6 +15,7 @@
 */
 import * as cdk from 'aws-cdk-lib';
 import * as cr from 'aws-cdk-lib/custom-resources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
 
@@ -24,6 +25,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { addCfnNagSuppression } from './cfnNagSuppression';
 
 export interface OperationalMetricsCollectionProps {
+    vpc: ec2.IVpc;
     awsSolutionId: string;
     awsSolutionVersion: string;
     retainData: boolean;
@@ -44,6 +46,10 @@ export class OperationalMetricsCollection extends Construct {
         super(scope, id);
 
         const fn = new NodejsFunction(this, 'operational-metrics-handler', {
+            vpc: props.vpc,
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            },
             entry: path.join(__dirname, './operationMetricCollectionLambda.ts'),
             handler: 'handler',
             description: 'Lambda for Operational Metrics collection',

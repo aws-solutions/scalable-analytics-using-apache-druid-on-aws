@@ -235,6 +235,23 @@ The Federal Information Processing Standard ([FIPS](https://aws.amazon.com/compl
 "useFipsEndpoint": true,
 ```
 
+**Self-managed druid installation bucket asset (optional)**
+
+By default, the solution will upload druid binary, extension, config and scripts to s3 bucket automatically, optionally you can manage these assets yourself by using below configuration
+
+```
+"selfManageInstallationBucketAssets": true,
+```
+When this option is enabled, you will need to manually upload assets in the following folders to s3 bucket after you `npm run build`
+```
+source/lib/uploads/scripts/ -> bootstrap-s3-bucket-installation/scripts/
+source/lib/docker/extensions/ -> bootstrap-s3-bucket-installation/extensions/
+source/lib/uploads/config/ -> bootstrap-s3-bucket-installation/config/
+source/lib/docker/ca-certs/ -> bootstrap-s3-bucket-installation/ca-certs/
+source/druid-bin/ -> bootstrap-s3-bucket-installation/druid-images/
+source/zookeeper-bin/ -> bootstrap-s3-bucket-installation/zookeeper-images/
+```
+
 **Identity provider configuration (optional)**
 The default setup of this solution activates basic authentication, enabling access to the Druid web console and API through a username and password. Additionally, you have the option to enable user access federation through a third-party identity provider (IdP) that supports OpenID Connect authentication. If you have an existing enterprise Identity Provider, you can seamlessly integrate it using the CDK configuration outlined below.
 

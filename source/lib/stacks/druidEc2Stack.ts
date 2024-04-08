@@ -82,7 +82,10 @@ export class DruidEc2Stack extends DruidStack {
 
         const certificateGenerator = new InternalCertificateAuthority(
             this,
-            'internal-certificate-authority'
+            'internal-certificate-authority',
+            {
+                vpc: this.baseInfra.vpc,
+            }
         );
 
         const ec2Config = props.clusterParams.hostingConfig as Ec2Config;
@@ -197,9 +200,11 @@ export class DruidEc2Stack extends DruidStack {
         // create data tiers
         const dataAsgList = this.createDataTiers(asgContext);
         dataAsgList.forEach((dataAsg) => {
-            dataAsg.autoScalingGroup.node.addDependency(
-                this.baseInfra.druidImageDeployment!
-            );
+            if (this.baseInfra.druidImageDeployment) {
+                dataAsg.autoScalingGroup.node.addDependency(
+                    this.baseInfra.druidImageDeployment!,
+                );
+            }
             dataAsg.autoScalingGroup.node.addDependency(
                 zookeeper.zookeeperASGs[zookeeper.zookeeperASGs.length - 1]
             );
@@ -223,6 +228,7 @@ export class DruidEc2Stack extends DruidStack {
         });
 
         new OperationalMetricsCollection(this, 'metrics-collection', {
+            vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
             druidVersion: props.clusterParams.druidVersion,

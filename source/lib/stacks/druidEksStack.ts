@@ -87,6 +87,7 @@ export class DruidEksStack extends DruidStack {
         }
 
         new OperationalMetricsCollection(this, 'metrics-collection', {
+            vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
             druidVersion: props.clusterParams.druidVersion,

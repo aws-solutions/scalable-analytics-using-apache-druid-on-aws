@@ -17,6 +17,7 @@ import * as appInsights from 'aws-cdk-lib/aws-applicationinsights';
 import * as appRegistry from '@aws-cdk/aws-servicecatalogappregistry-alpha';
 import * as cdk from 'aws-cdk-lib';
 import * as cr from 'aws-cdk-lib/custom-resources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
@@ -32,6 +33,7 @@ const DEFAULT_APPLICATION_RESOURCE_GROUP_STATE_QUERY_TIMEOUT = cdk.Duration.minu
 const DEFAULT_APPLICATION_RESOURCE_GROUP_STATE_QUERY_INTERVAL = cdk.Duration.seconds(1);
 
 interface AppRegistryProps {
+    vpc: ec2.IVpc;
     solutionName: string;
     solutionId: string;
     solutionVersion: string;
@@ -52,7 +54,7 @@ export class AppRegistry extends Construct implements cdk.IAspect {
         this.application = this.createAppForAppRegistry();
         this.createAttributeGroup(this.application);
         this.addTagsforApplication(this.application);
-        const waiter = this.waitForResourceGroupCreated(this.application);
+        const waiter = this.waitForResourceGroupCreated(this.application, props.vpc);
 
         this.createAppForAppInsights(this.application, waiter);
     }
@@ -102,7 +104,8 @@ export class AppRegistry extends Construct implements cdk.IAspect {
     // The Application does not expose the resource group instance that we can use to set dependency which will cause the intermittent failure in AppInsight Application provision.
     // Add a waiter customer resource to ensure the Resource Group is CREATED.
     private waitForResourceGroupCreated(
-        application: appRegistry.Application
+        application: appRegistry.Application,
+        vpc: ec2.IVpc,
     ): cdk.CustomResource {
         const lambdaPolicyStatement = new iam.PolicyStatement({
             actions: ['servicecatalog:GetApplication'],
@@ -120,6 +123,8 @@ export class AppRegistry extends Construct implements cdk.IAspect {
         });
 
         const eventHandlerLambda = new NodejsFunction(this, 'event-handler-lambda', {
+            vpc: vpc,
+            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
             entry: path.join(__dirname, '../lambdas/appRegistryWaiterLambda.ts'),
             handler: 'handler',
             description:
