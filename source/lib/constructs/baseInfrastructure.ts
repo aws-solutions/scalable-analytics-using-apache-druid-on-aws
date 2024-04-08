@@ -41,6 +41,7 @@ export interface BaseInfrastructureProps {
     readonly vpcCidr?: string;
     readonly initBastion?: boolean;
     readonly initInstallationBucket?: boolean;
+    readonly selfManageInstallationBucketAssets?: boolean;
     readonly druidClusterName: string;
     readonly druidDeepStorageConfig?: DruidDeepStorageConfig;
     readonly oidcIdpConfig?: OidcIdpConfig;
@@ -122,54 +123,61 @@ export class BaseInfrastructure extends Construct {
                 }
             );
 
-            new BucketDeployment(this, 'bucket-deployment-scripts', {
-                sources: [Source.asset('lib/uploads/scripts')],
-                destinationBucket: this.installationBucket,
-                destinationKeyPrefix: SCRIPTS_FOLDER,
-            });
-
-            new BucketDeployment(this, 'bucket-deployment-extensions', {
-                sources: [Source.asset(`lib/docker/extensions`)],
-                destinationBucket: this.installationBucket,
-                destinationKeyPrefix: EXTENSIONS_FOLDER,
-                exclude: ['.gitkeep'],
-            });
-
-            new BucketDeployment(this, 'bucket-deployment-config', {
-                sources: [Source.asset('lib/uploads/config')],
-                destinationBucket: this.installationBucket,
-                destinationKeyPrefix: CONFIG_FOLDER,
-                exclude: ['*_version.txt'],
-            });
-
-            new BucketDeployment(this, 'bucket-deployment-rds-ca-bundle', {
-                sources: [Source.asset('lib/docker/ca-certs')],
-                destinationBucket: this.installationBucket,
-                destinationKeyPrefix: 'ca-certs',
-            });
-
-            this.druidImageDeployment = new BucketDeployment(
-                this,
-                'bucket-deployment-druid-image',
-                {
-                    sources: [Source.asset('druid-bin/')],
+            if (!props.selfManageInstallationBucketAssets) {
+                new BucketDeployment(this, 'bucket-deployment-scripts', {
+                    sources: [Source.asset('lib/uploads/scripts')],
                     destinationBucket: this.installationBucket,
-                    destinationKeyPrefix: DRUID_IMAGE_FOLDER,
-                    memoryLimit: 4096,
-                    useEfs: true,
+                    destinationKeyPrefix: SCRIPTS_FOLDER,
                     vpc: this.vpc,
-                }
-            );
+                });
 
-            this.zookeeperImageDeployment = new BucketDeployment(
-                this,
-                'bucket-deployment-zookeeper-image',
-                {
-                    sources: [Source.asset('zookeeper-bin/')],
+                new BucketDeployment(this, 'bucket-deployment-extensions', {
+                    sources: [Source.asset(`lib/docker/extensions`)],
                     destinationBucket: this.installationBucket,
-                    destinationKeyPrefix: ZOOKEEPER_IMAGE_FOLDER,
-                }
-            );
+                    destinationKeyPrefix: EXTENSIONS_FOLDER,
+                    exclude: ['.gitkeep'],
+                    vpc: this.vpc,
+                });
+
+                new BucketDeployment(this, 'bucket-deployment-config', {
+                    sources: [Source.asset('lib/uploads/config')],
+                    destinationBucket: this.installationBucket,
+                    destinationKeyPrefix: CONFIG_FOLDER,
+                    exclude: ['*_version.txt'],
+                    vpc: this.vpc,
+                });
+
+                new BucketDeployment(this, 'bucket-deployment-rds-ca-bundle', {
+                    sources: [Source.asset('lib/docker/ca-certs')],
+                    destinationBucket: this.installationBucket,
+                    destinationKeyPrefix: 'ca-certs',
+                    vpc: this.vpc,
+                });
+
+                this.druidImageDeployment = new BucketDeployment(
+                    this,
+                    'bucket-deployment-druid-image',
+                    {
+                        sources: [Source.asset('druid-bin/')],
+                        destinationBucket: this.installationBucket,
+                        destinationKeyPrefix: DRUID_IMAGE_FOLDER,
+                        memoryLimit: 4096,
+                        useEfs: true,
+                        vpc: this.vpc,
+                    }
+                );
+
+                this.zookeeperImageDeployment = new BucketDeployment(
+                    this,
+                    'bucket-deployment-zookeeper-image',
+                    {
+                        sources: [Source.asset('zookeeper-bin/')],
+                        destinationBucket: this.installationBucket,
+                        destinationKeyPrefix: ZOOKEEPER_IMAGE_FOLDER,
+                        vpc: this.vpc,
+                    }
+                );
+            }
         }
 
         if (props.initBastion) {

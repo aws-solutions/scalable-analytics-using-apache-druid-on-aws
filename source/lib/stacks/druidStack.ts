@@ -46,6 +46,7 @@ export abstract class DruidStack extends cdk.Stack {
             vpcCidr: props.vpcId ? undefined : props.vpcCidr, // don't set cidr for byo vpc
             initBastion: props.initBastion,
             initInstallationBucket: props.initInstallationBucket,
+            selfManageInstallationBucketAssets: props.selfManageInstallationBucketAssets,
             druidClusterName: props.clusterParams.druidClusterName,
             druidDeepStorageConfig: props.clusterParams.druidDeepStorageConfig,
             oidcIdpConfig: props.clusterParams.oidcIdpConfig,
@@ -111,6 +112,7 @@ export abstract class DruidStack extends cdk.Stack {
 
         cdk.Aspects.of(this).add(
             new AppRegistry(this, 'app-registry-aspect', {
+                vpc: this.baseInfra.vpc,
                 solutionId: props.solutionId,
                 solutionVersion: props.solutionVersion,
                 solutionName: props.solutionName,

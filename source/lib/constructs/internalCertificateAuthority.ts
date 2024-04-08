@@ -17,6 +17,7 @@
 
 import * as cdk from 'aws-cdk-lib';
 import * as cr from 'aws-cdk-lib/custom-resources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -25,10 +26,14 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 import { Construct } from 'constructs';
 
+export interface InternalCertificateAuthorityProps {
+    vpc: ec2.IVpc;
+}
+
 export class InternalCertificateAuthority extends Construct {
   public readonly TlsCertificate: secretsmanager.ISecret;
 
-  public constructor(scope: Construct, id: string) {
+  public constructor(scope: Construct, id: string, props: InternalCertificateAuthorityProps) {
     super(scope, id);
 
     this.TlsCertificate = new secretsmanager.Secret(this, 'tls-certificate', {
@@ -44,6 +49,10 @@ export class InternalCertificateAuthority extends Construct {
       this,
       'tls-generator-handler',
       {
+        vpc: props.vpc,
+        vpcSubnets: {
+            subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
         entry: path.join(__dirname, '../lambdas/certificateGenerator.ts'),
         handler: 'onEventHandler',
         runtime: lambda.Runtime.NODEJS_LATEST,

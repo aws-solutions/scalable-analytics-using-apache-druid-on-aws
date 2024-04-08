@@ -84,6 +84,7 @@ const contextKeys: (keyof DruidConfig)[] = [
     'druidInstanceIamPolicyArns',
     'tags',
     'additionalTags',
+    'selfManageInstallationBucketAssets',
 ];
 
 const configMap: Record<string, unknown> = {};
@@ -171,6 +172,7 @@ const commonStackProps = {
     customAmi: druidConfig.customAmi,
     subnetMappings: druidConfig.subnetMappings,
     enableVulnerabilityScanJob: druidConfig.enableVulnerabilityScanJob ?? false,
+    selfManageInstallationBucketAssets: druidConfig.selfManageInstallationBucketAssets ?? false,
     ...(!druidConfig.environmentAgnostic && { env: { account, region } }),
 };
 

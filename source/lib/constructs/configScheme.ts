@@ -275,6 +275,12 @@ export const configScheme = {
             $id: '#/properties/enableVulnerabilityScanJob',
             description: 'Whether to enable vulnerability scan job.',
         },
+        selfManageInstallationBucketAssets: {
+            type: 'boolean',
+            title: 'Enable self management for installation bucket assets',
+            $id: '#/properties/selfManageInstallationBucketAssets',
+            description: 'Whether to enable self management for installation bucket assets.',
+        },
         environmentAgnostic: {
             type: 'boolean',
             title: 'Environment Agnostic',
