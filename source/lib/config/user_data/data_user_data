@@ -12,11 +12,12 @@ do
     mount -t ext4 $NVME_PATH $MOUNT_POINT
     echo "$NVME_PATH $MOUNT_POINT auto noatime 0 0" | tee -a /etc/fstab
     mkdir -p $MOUNT_POINT/var/druid/druidSegments
+    mkdir -p $MOUNT_POINT/var/tmp
+    mkdir -p $MOUNT_POINT/var/druid/task
+    mkdir -p $MOUNT_POINT/var/druid/processing
     chown -R ${USER_NAME}:${USER_NAME} $MOUNT_POINT
     PATH_INDEX=$(expr $PATH_INDEX + 1)
 done
-
-mkdir -p /mnt/disk2/var/tmp /mnt/disk2/var/druid/task /mnt/disk2/var/druid/processing
 
 sh -c 'echo "* soft nofile 800000" >> /etc/security/limits.conf'
 sh -c 'echo "* hard nofile 800000" >> /etc/security/limits.conf'

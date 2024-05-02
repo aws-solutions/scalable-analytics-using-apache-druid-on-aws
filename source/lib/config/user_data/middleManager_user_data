@@ -1,10 +1,22 @@
 {{COMMON_USER_DATA}}
 MIDDLEMANAGER_CONFIG_VERSION={{MIDDLEMANAGER_CONFIG_VERSION}}
 
-mkdir -p /mnt/disk2/var/tmp
-mkdir -p /mnt/disk2/var/druid/task
-mkdir -p /mnt/disk2/var/druid/processing
-sudo chown -R ${USER_NAME}:${USER_NAME} /mnt/disk2/
+echo " >>druid>> mounting NVME disks $(date)"
+PATH_INDEX=2
+for NVME_PATH in $(nvme list -o json | jq '.Devices | map(select(.DevicePath != "/dev/nvme0n1").DevicePath) | sort | join(" ")' | tr -d '"')
+do
+    MOUNT_POINT=/mnt/disk${PATH_INDEX}
+    mkdir -p $MOUNT_POINT
+    mkfs.ext4 $NVME_PATH
+    mount -t ext4 $NVME_PATH $MOUNT_POINT
+    echo "$NVME_PATH $MOUNT_POINT auto noatime 0 0" | tee -a /etc/fstab
+    mkdir -p $MOUNT_POINT/var/druid/druidSegments
+    mkdir -p $MOUNT_POINT/var/tmp
+    mkdir -p $MOUNT_POINT/var/druid/task
+    mkdir -p $MOUNT_POINT/var/druid/processing
+    chown -R ${USER_NAME}:${USER_NAME} $MOUNT_POINT
+    PATH_INDEX=$(expr $PATH_INDEX + 1)
+done
 
 cp -rf $DRUID_SOLUTION_CONFIG/middleManager $DRUID_CLUSTER_CONFIG/data/
 
