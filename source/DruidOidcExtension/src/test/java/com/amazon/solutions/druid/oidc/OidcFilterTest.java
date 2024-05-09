@@ -62,7 +62,7 @@ public class OidcFilterTest {
         response = mock(HttpServletResponse.class);
 
         filter = new OidcFilter("name", "authorizerName", pac4jConfig, oidcConfig, "test", securityLogic,
-                callbackLogic);
+            callbackLogic);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class OidcFilterTest {
         when(request.getRequestURI()).thenReturn("/blah");
         when(request.getAttribute("Druid-Authentication-Result")).thenReturn(null);
         when(securityLogic.perform(any(), any(), any(), any(), any(), any(),
-                any(), any())).thenReturn(new CommonProfile(false));
+            any(), any())).thenReturn(new CommonProfile(false));
         FilterChain filterChain = mock(FilterChain.class);
 
         // act
@@ -103,7 +103,7 @@ public class OidcFilterTest {
 
     @Test
     public void doNothingOnAuthenticatedRequest() throws IOException, ServletException {
-         // arrange
+        // arrange
         when(request.getRequestURI()).thenReturn("/blah");
         when(request.getAttribute("Druid-Authentication-Result")).thenReturn("something");
         FilterChain filterChain = mock(FilterChain.class);
