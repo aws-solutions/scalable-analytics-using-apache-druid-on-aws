@@ -26,8 +26,6 @@ import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 
-import org.apache.druid.guice.Jerseys;
-import org.apache.druid.guice.JsonConfigProvider;
 import org.apache.druid.initialization.DruidModule;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -40,17 +38,11 @@ public class XBasicHTTPDruidModule implements DruidModule {
         return ImmutableList.of(
                 new SimpleModule("XBasicAuthDruidSecurity").registerSubtypes(
                         XBasicHTTPAuthenticator.class,
-                        XBasicHTTPAuthorizer.class,
-                        BasicAuthenticationRoleProvider.class));
+                        XBasicHTTPAuthorizer.class));
     }
 
     @Override
-    public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "druid.auth.oidc", OidcConfig.class);
-
-        Jerseys.addResource(binder, BasicHTTPCallbackResource.class);
-        binder.bind(RoleProvider.class).to(BasicAuthenticationRoleProvider.class);
-    }
+    public void configure(Binder binder) {}
 
     @Provides
     static HttpClient createHttpClient(final Injector injector) {

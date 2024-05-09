@@ -36,7 +36,7 @@ public class XBasicHTTPAuthorizer implements Authorizer {
 
     @JsonCreator
     public XBasicHTTPAuthorizer() {
-        logger.debug("Initialising Basic HTTP authorizer");
+        logger.debug("Initialising X-Basic HTTP authorizer");
     }
 
     @Override
