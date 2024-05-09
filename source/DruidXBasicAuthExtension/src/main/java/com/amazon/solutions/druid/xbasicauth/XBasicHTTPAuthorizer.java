@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 
-@JsonTypeName("allowAll")
+@JsonTypeName("xbasic")
 public class XBasicHTTPAuthorizer implements Authorizer {
     private static final Logger logger = new Logger(XBasicHTTPAuthorizer.class);
 
