@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 @JsonTypeName("basic")
-public class BasicHTTPAuthenticator implements Authenticator {
+public class XBasicHTTPAuthenticator implements Authenticator {
     public static final String DEFAULT_SCOPE = "openid";
 
     private final String name;
@@ -57,7 +57,7 @@ public class BasicHTTPAuthenticator implements Authenticator {
     private final OidcConfig oidcConfig;
 
     @JsonCreator
-    public BasicHTTPAuthenticator(
+    public XBasicHTTPAuthenticator(
             @JsonProperty("name") String name,
             @JsonProperty("authorizerName") String authorizerName,
             @JacksonInject OidcConfig oidcConfig,
@@ -77,7 +77,7 @@ public class BasicHTTPAuthenticator implements Authenticator {
 
     @Override
     public Filter getFilter() {
-        return new BasicHTTPFilter(
+        return new XBasicHTTPFilter(
                 name,
                 authorizerName,
                 pac4jConfigSupplier.get(), oidcConfig,

@@ -34,13 +34,13 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.util.List;
 
-public class BasicHTTPDruidModule implements DruidModule {
+public class XBasicHTTPDruidModule implements DruidModule {
     @Override
     public List<? extends Module> getJacksonModules() {
         return ImmutableList.of(
-                new SimpleModule("OidcDruidSecurity").registerSubtypes(
-                        BasicHTTPAuthenticator.class,
-                        BasicHTTPAuthorizer.class,
+                new SimpleModule("XBasicAuthDruidSecurity").registerSubtypes(
+                        XBasicHTTPAuthenticator.class,
+                        XBasicHTTPAuthorizer.class,
                         BasicAuthenticationRoleProvider.class));
     }
 
