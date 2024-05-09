@@ -30,7 +30,7 @@ import javax.servlet.Filter;
 import java.util.EnumSet;
 import java.util.Map;
 
-@JsonTypeName("allowAll")
+@JsonTypeName("xbasic")
 public class XBasicHTTPAuthenticator implements Authenticator {
     @JsonCreator
     public XBasicHTTPAuthenticator() {}
