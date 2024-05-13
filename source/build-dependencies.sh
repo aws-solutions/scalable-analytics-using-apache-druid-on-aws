@@ -58,7 +58,7 @@ build_druid_xbasic()
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-xbasic/ && \
        mkdir -p ../lib/docker/extensions/druid-xbasic/ && \
-       cp -f target/druid-xbasic ../lib/docker/extensions/druid-xbasic/
+       cp -f target/druid-xbasic-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-xbasic/
 }
 
 download_druid_operator()
