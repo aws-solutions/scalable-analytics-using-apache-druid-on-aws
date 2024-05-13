@@ -54,7 +54,7 @@ build_druid_oidc()
 build_druid_xbasic()
 {
     echo "building druid xbasic extension"
-    cd DruidOidcExtension && \
+    cd DruidXBasicExtension && \
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-xbasic/ && \
        mkdir -p ../lib/docker/extensions/druid-xbasic/ && \
