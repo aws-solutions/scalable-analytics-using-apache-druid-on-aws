@@ -23,9 +23,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.amazon.solutions.druid.extensions</groupId>
-    <artifactId>druid-x-basic-auth</artifactId>
-    <name>druid-x-basic-auth</name>
-    <description>druid-x-basic-auth</description>
+    <artifactId>druid-xbasic</artifactId>
+    <name>druid-xbasic</name>
+    <description>druid-xbasic</description>
     <version>25.0.0</version>
 
     <properties>
@@ -191,10 +191,7 @@
                 <version>0.8.10</version>
                 <configuration>
                     <excludes>
-                        <exclude>com/amazon/solutions/druid/oidc/OidcDruidModule.class</exclude>
-                        <exclude>com/amazon/solutions/druid/oidc/OidcCallbackResource.class</exclude>
-                        <exclude>com/amazon/solutions/druid/oidc/Permission.class</exclude>
-                        <exclude>com/amazon/solutions/druid/oidc/CustomSSLResourceRetriever.class</exclude>
+                        <exclude>com/amazon/solutions/druid/xbasic/XBasicDruidModule.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
