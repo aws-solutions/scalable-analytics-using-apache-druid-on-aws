@@ -1,4 +1,4 @@
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -6,10 +6,10 @@ import javax.servlet.Filter;
 import org.junit.Test;
 
 public class XBasicAuthenticatorTest {
-    private XBasicHTTPAuthenticator authenticator;
+    private XBasicAuthenticator authenticator;
     @Test
     public void canInitialiseOidcFilter() {
-        authenticator = new XBasicHTTPAuthenticator();
+        authenticator = new XBasicAuthenticator();
         Filter oidcFilter = authenticator.getFilter();
 
         assertNotNull(oidcFilter);

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import org.apache.druid.java.util.common.logger.Logger;
 import org.apache.druid.server.security.Access;
@@ -31,11 +31,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 
 @JsonTypeName("xbasic")
-public class XBasicHTTPAuthorizer implements Authorizer {
-    private static final Logger logger = new Logger(XBasicHTTPAuthorizer.class);
+public class XBasicAuthorizer implements Authorizer {
+    private static final Logger logger = new Logger(XBasicAuthorizer.class);
 
     @JsonCreator
-    public XBasicHTTPAuthorizer() {
+    public XBasicAuthorizer() {
         logger.debug("Initialising X-Basic HTTP authorizer");
     }
 

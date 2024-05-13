@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import java.util.Collections;
 import java.util.Enumeration;
@@ -37,10 +37,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class XBasicHTTPFilter implements Filter {
-    private static final Logger logger = new Logger(XBasicHTTPFilter.class);
+public class XBasicFilter implements Filter {
+    private static final Logger logger = new Logger(XBasicFilter.class);
 
-    public XBasicHTTPFilter() {}
+    public XBasicFilter() {}
 
     @Override
     public void init(FilterConfig filterConfig) {
