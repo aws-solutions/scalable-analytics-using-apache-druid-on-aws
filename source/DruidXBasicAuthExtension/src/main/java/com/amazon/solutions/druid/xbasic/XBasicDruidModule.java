@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -32,13 +32,13 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.util.List;
 
-public class XBasicHTTPDruidModule implements DruidModule {
+public class XBasicDruidModule implements DruidModule {
     @Override
     public List<? extends Module> getJacksonModules() {
         return ImmutableList.of(
                 new SimpleModule("XBasicAuthDruidSecurity").registerSubtypes(
-                        XBasicHTTPAuthenticator.class,
-                        XBasicHTTPAuthorizer.class));
+                        XBasicAuthenticator.class,
+                        XBasicAuthorizer.class));
     }
 
     @Override

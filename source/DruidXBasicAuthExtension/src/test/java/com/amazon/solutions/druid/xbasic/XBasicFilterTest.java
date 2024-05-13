@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 
-public class XBasicHTTPFilterTest {
-    private XBasicHTTPFilter filter;
+public class XBasicFilterTest {
+    private XBasicFilter filter;
     private HttpServletRequest request;
     private HttpServletResponse response;
 
@@ -43,7 +43,7 @@ public class XBasicHTTPFilterTest {
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
 
-        filter = new XBasicHTTPFilter();
+        filter = new XBasicFilter();
     }
 
     @Test

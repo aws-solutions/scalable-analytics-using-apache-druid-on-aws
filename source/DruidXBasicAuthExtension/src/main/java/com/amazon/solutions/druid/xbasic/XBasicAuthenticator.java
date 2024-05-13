@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -31,13 +31,13 @@ import java.util.EnumSet;
 import java.util.Map;
 
 @JsonTypeName("xbasic")
-public class XBasicHTTPAuthenticator implements Authenticator {
+public class XBasicAuthenticator implements Authenticator {
     @JsonCreator
-    public XBasicHTTPAuthenticator() {}
+    public XBasicAuthenticator() {}
 
     @Override
     public Filter getFilter() {
-        return new XBasicHTTPFilter();
+        return new XBasicFilter();
     }
 
     @Override

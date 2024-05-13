@@ -1,4 +1,4 @@
-package com.amazon.solutions.druid.xbasicauth;
+package com.amazon.solutions.druid.xbasic;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -13,8 +13,8 @@ import org.apache.druid.server.security.Resource;
 import org.junit.Before;
 import org.junit.Test;
 
-public class XBasicHTTPAuthorizerTest {
-    private XBasicHTTPAuthorizer authorizer;
+public class XBasicAuthorizerTest {
+    private XBasicAuthorizer authorizer;
     private Resource resource;
     private Map<String, Object> context;
     private AuthenticationResult result;
@@ -27,7 +27,7 @@ public class XBasicHTTPAuthorizerTest {
         when(result.getContext()).thenReturn(context);
         resource = new Resource("resourceName", "resourceType");
 
-        authorizer = new XBasicHTTPAuthorizer();
+        authorizer = new XBasicAuthorizer();
     }
 
     @Test
