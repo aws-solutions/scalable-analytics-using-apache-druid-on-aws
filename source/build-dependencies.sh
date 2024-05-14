@@ -44,23 +44,21 @@ build_druid_cloudwatch()
 build_druid_oidc()
 {
     echo "building druid oidc extension"
-    ls -l
     cd DruidOidcExtension && \
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-oidc/ && \
        mkdir -p ../lib/docker/extensions/druid-oidc/ && \
-       cp -f target/druid-oidc-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
+       cp -f target/druid-oidc-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/ && cd ..
 }
 
 build_druid_xbasic()
 {
     echo "building druid xbasic extension"
-    ls -l
     cd DruidXBasicExtension && \
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-xbasic/ && \
        mkdir -p ../lib/docker/extensions/druid-xbasic/ && \
-       cp -f target/druid-xbasic-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-xbasic/
+       cp -f target/druid-xbasic-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-xbasic/ && cd ..
 }
 
 download_druid_operator()
