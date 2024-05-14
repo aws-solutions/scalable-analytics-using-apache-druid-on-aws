@@ -44,7 +44,7 @@ build_druid_cloudwatch()
 build_druid_oidc()
 {
     echo "building druid oidc extension"
-    ll
+    ls -l
     cd DruidOidcExtension && \
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-oidc/ && \
@@ -55,7 +55,7 @@ build_druid_oidc()
 build_druid_xbasic()
 {
     echo "building druid xbasic extension"
-    ll
+    ls -l
     cd DruidXBasicExtension && \
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-xbasic/ && \
