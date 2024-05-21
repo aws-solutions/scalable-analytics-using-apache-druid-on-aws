@@ -45,4 +45,4 @@ echo " >>druid>> starting apache druid $(date)"
 supervisord -c $DRUID_HOME/conf/supervisor/supervisord.conf
 
 $PYTHON $DRUID_HOME/scripts/druid/check_druid_status.py --component-name query --graceful-termination-param-name {{GRACEFUL_TERMINATION_PARAM_NAME}} --base-url {{DRUID_BASE_URL}}
-cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}} --url https://cloudformation$($AWS_USE_FIPS_ENDPOINT && echo -fips).{{REGION}}.amazonaws.com
