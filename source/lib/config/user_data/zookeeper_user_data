@@ -176,4 +176,4 @@ echo "* * * * * sudo -u ${USER_NAME} $PYTHON $ZOOKEEPER_HOME/scripts/zkMetrics.p
 crontab /tmp/mycrontab
 
 sh $ZOOKEEPER_HOME/scripts/health_check.sh $ENI_IP
-cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}}
+cfn-signal -e $? --stack {{STACK_NAME}} --resource {{RESOURCE_NAME}} --region {{REGION}} --url https://cloudformation$($AWS_USE_FIPS_ENDPOINT && echo -fips).{{REGION}}.amazonaws.com

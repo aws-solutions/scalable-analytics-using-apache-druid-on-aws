@@ -121,7 +121,7 @@ export class DruidAutoScalingGroup extends Construct {
         });
         asg.addUserData(this.createUserData(props, instanceConfig, asg).render());
 
-        utils.addNameTag(asg, props.nodeType);
+        utils.addNameTag(asg, nodeTierName);
         if (props.serviceTier) {
             utils.addTierTag(asg, props.serviceTier);
         }
