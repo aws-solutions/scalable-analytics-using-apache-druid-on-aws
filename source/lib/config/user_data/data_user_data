@@ -59,6 +59,7 @@ user=${USER_NAME}
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/historical.log
+stopwaitsecs=30
 EOF
 
 chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/ /mnt/disk2

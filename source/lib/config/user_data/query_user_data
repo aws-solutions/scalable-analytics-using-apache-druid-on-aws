@@ -27,6 +27,7 @@ user=${USER_NAME}
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/broker.log
+stopwaitsecs=30
 EOF
 
 cat <<EOF > $DRUID_HOME/conf/supervisor/supervisord.d/router.conf
