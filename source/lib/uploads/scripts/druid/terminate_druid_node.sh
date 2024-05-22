@@ -109,7 +109,7 @@ waitForProcess() {
         else
             echo "The new node is up. Stopping old node..."
             $SUPERVISORCTL_CMD stop $process_name
-            # wait historical gracefulShutdownTimeout for 30 seconds
+            # wait gracefulShutdownTimeout for 30 seconds
             sleep 30
             break
         fi
