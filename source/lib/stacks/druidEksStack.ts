@@ -86,7 +86,9 @@ export class DruidEksStack extends DruidStack {
             this.createCanary(`https://${props.druidDomain}`);
         }
 
-        new OperationalMetricsCollection(this, 'metrics-collection', {
+        // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+        // prettier-ignore
+        new OperationalMetricsCollection(this, 'metrics-collection', { // NOSONAR (typescript:S1848) - cdk construct is used
             vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
@@ -119,7 +121,9 @@ export class DruidEksStack extends DruidStack {
         }
 
         // create monitoring dashboard
-        new MonitoringDashboard(this, 'druid-ops-dashboard', {
+        // prettier-ignore
+        new MonitoringDashboard(this, 'druid-ops-dashboard', { // NOSONAR (typescript:S1848) - cdk construct is used
+
             druidClusterName: druidEksProps.druidClusterParams.druidClusterName,
             computeWidgets: [
                 ...this.getEksWidgets(druidEksProps.druidClusterParams.druidClusterName),
@@ -127,8 +131,8 @@ export class DruidEksStack extends DruidStack {
             metadataDatabaseWidget: [...this.cluster.metadataDb.getCloudWatchWidgets()],
             deepStorageBucketName: this.baseInfra.deepStorageBucket.bucketName,
         });
-
-        new DruidAlarms(this, 'alarms', {
+        // prettier-ignore
+        new DruidAlarms(this, 'alarms', { // NOSONAR (typescript:S1848) - cdk construct is used
             druidClusterName: druidEksProps.druidClusterParams.druidClusterName,
             dbIdentifier: this.cluster.metadataDb.dbIdentifier,
             zookeeperNodeCount:

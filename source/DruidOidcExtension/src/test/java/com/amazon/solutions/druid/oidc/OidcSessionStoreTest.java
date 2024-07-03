@@ -26,6 +26,7 @@ import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class OidcSessionStoreTest {
     @Test
@@ -51,7 +52,7 @@ public class OidcSessionStoreTest {
         EasyMock.expect(webContext2.getRequestCookies()).andReturn(Collections.singletonList(cookie));
         EasyMock.replay(webContext2);
 
-        Assert.assertEquals("value", sessionStore.get(webContext2, "key"));
+        Assert.assertEquals(Optional.of("value"), sessionStore.get(webContext2, "key"));
     }
 
     @Test
@@ -69,9 +70,9 @@ public class OidcSessionStoreTest {
 
         Cookie cookie = cookieCapture.getValue();
         Assert.assertNull(cookie.getValue());
-        Assert.assertNull(sessionStore.buildFromTrackableSession(webContext, cookie));
+        Assert.assertFalse(sessionStore.buildFromTrackableSession(webContext, cookie).isPresent());
         Assert.assertFalse(sessionStore.destroySession(webContext));
-        Assert.assertNull(sessionStore.getTrackableSession(webContext));
+        Assert.assertFalse(sessionStore.getTrackableSession(webContext).isPresent());
         Assert.assertFalse(sessionStore.renewSession(webContext));
     }
 }

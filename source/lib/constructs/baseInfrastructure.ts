@@ -71,7 +71,8 @@ export class BaseInfrastructure extends Construct {
             removalPolicy: props.removalPolicy,
         };
 
-        this.serverAccessLogsBucket = new s3.Bucket(this, 'server-access-logs-bucket', {
+        // prettier-ignore
+        this.serverAccessLogsBucket = new s3.Bucket(this, 'server-access-logs-bucket', { // NOSONAR (typescript:S6281) - log bucket
             ...commonS3BucketProperties,
             encryption: s3.BucketEncryption.S3_MANAGED,
         });
@@ -112,7 +113,8 @@ export class BaseInfrastructure extends Construct {
         });
 
         if (props.initInstallationBucket) {
-            this.installationBucket = new s3.Bucket(
+            // prettier-ignore
+            this.installationBucket = new s3.Bucket( // NOSONAR (typescript:S6281) - log bucket
                 this,
                 'bootstrap-s3-bucket-installation',
                 {
@@ -124,14 +126,17 @@ export class BaseInfrastructure extends Construct {
             );
 
             if (!props.selfManageInstallationBucketAssets) {
-                new BucketDeployment(this, 'bucket-deployment-scripts', {
+                // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+                // prettier-ignore
+                new BucketDeployment(this, 'bucket-deployment-scripts', { // NOSONAR (typescript:S1848) - cdk construct is used
                     sources: [Source.asset('lib/uploads/scripts')],
                     destinationBucket: this.installationBucket,
                     destinationKeyPrefix: SCRIPTS_FOLDER,
                     vpc: this.vpc,
                 });
 
-                new BucketDeployment(this, 'bucket-deployment-extensions', {
+                // prettier-ignore
+                new BucketDeployment(this, 'bucket-deployment-extensions', { // NOSONAR (typescript:S1848) - cdk construct is used
                     sources: [Source.asset(`lib/docker/extensions`)],
                     destinationBucket: this.installationBucket,
                     destinationKeyPrefix: EXTENSIONS_FOLDER,
@@ -139,7 +144,8 @@ export class BaseInfrastructure extends Construct {
                     vpc: this.vpc,
                 });
 
-                new BucketDeployment(this, 'bucket-deployment-config', {
+                // prettier-ignore
+                new BucketDeployment(this, 'bucket-deployment-config', { // NOSONAR (typescript:S1848) - cdk construct is used
                     sources: [Source.asset('lib/uploads/config')],
                     destinationBucket: this.installationBucket,
                     destinationKeyPrefix: CONFIG_FOLDER,
@@ -147,7 +153,8 @@ export class BaseInfrastructure extends Construct {
                     vpc: this.vpc,
                 });
 
-                new BucketDeployment(this, 'bucket-deployment-rds-ca-bundle', {
+                // prettier-ignore
+                new BucketDeployment(this, 'bucket-deployment-rds-ca-bundle', { // NOSONAR (typescript:S1848) - cdk construct is used
                     sources: [Source.asset('lib/docker/ca-certs')],
                     destinationBucket: this.installationBucket,
                     destinationKeyPrefix: 'ca-certs',
@@ -218,7 +225,8 @@ export class BaseInfrastructure extends Construct {
                       enableKeyRotation: true,
                   });
 
-            this.deepStorageBucket = new s3.Bucket(this, 'deep-storage-bucket', {
+            // prettier-ignore
+            this.deepStorageBucket = new s3.Bucket(this, 'deep-storage-bucket', { // NOSONAR (typescript:S6281) - log bucket
                 ...commonS3BucketProperties,
                 encryptionKey: this.deepStorageEncryptionKey,
                 encryption: s3.BucketEncryption.KMS,

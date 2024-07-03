@@ -21,12 +21,14 @@ package com.amazon.solutions.druid.oidc;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -37,7 +39,7 @@ import org.apache.druid.server.security.AuthenticationResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.J2EContext;
+import org.pac4j.core.context.JEEContext;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
@@ -47,11 +49,12 @@ public class OidcFilterTest {
     private OidcFilter filter;
     private Config pac4jConfig;
     private OidcConfig oidcConfig;
-    private SecurityLogic<CommonProfile, J2EContext> securityLogic;
-    private CallbackLogic<CommonProfile, J2EContext> callbackLogic;
+    private SecurityLogic<Object, JEEContext> securityLogic;
+    private CallbackLogic<Object, JEEContext> callbackLogic;
     private HttpServletRequest request;
     private HttpServletResponse response;
 
+    @SuppressWarnings("unchecked")
     @Before
     public void setup() {
         pac4jConfig = mock(Config.class);
@@ -72,6 +75,7 @@ public class OidcFilterTest {
         assertNotNull(filter);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void canProcessCallbackRequests() throws IOException, ServletException {
         // arrange
@@ -81,16 +85,23 @@ public class OidcFilterTest {
         filter.doFilter(request, response, null);
 
         // assert
-        verify(callbackLogic).perform(any(J2EContext.class), any(), any(HttpActionAdapter.class), eq("/"), eq(true), eq(false), eq(false), any());
+        verify(callbackLogic).perform(any(JEEContext.class), any(), any(HttpActionAdapter.class), eq("/"), eq(true),
+                eq(false), eq(false), any());
     }
 
     @Test
     public void canProcessAuthenticationRequest() throws IOException, ServletException {
         // arrange
+        CommonProfile profile = mock(CommonProfile.class);
+        when(profile.getAttributes()).thenReturn(new HashMap<>());
+        when(profile.getAttribute(anyString())).thenReturn(new Object());
+        when(profile.getId()).thenReturn("my-id");
+        
         when(request.getRequestURI()).thenReturn("/blah");
         when(request.getAttribute("Druid-Authentication-Result")).thenReturn(null);
+
         when(securityLogic.perform(any(), any(), any(), any(), any(), any(),
-                any(), any())).thenReturn(new CommonProfile(false));
+                any(), any())).thenReturn(profile);
         FilterChain filterChain = mock(FilterChain.class);
 
         // act
@@ -103,7 +114,7 @@ public class OidcFilterTest {
 
     @Test
     public void doNothingOnAuthenticatedRequest() throws IOException, ServletException {
-         // arrange
+        // arrange
         when(request.getRequestURI()).thenReturn("/blah");
         when(request.getAttribute("Druid-Authentication-Result")).thenReturn("something");
         FilterChain filterChain = mock(FilterChain.class);

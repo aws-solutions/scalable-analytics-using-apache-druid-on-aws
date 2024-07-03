@@ -66,7 +66,7 @@ export class DruidVpc extends constructs.Construct implements ec2.IVpc {
         );
         this.vpcCidrBlock = utils.ifUndefined(
             props.ipAddresses?.allocateVpcCidr().cidrBlock,
-            '10.0.0.0/16'
+            '10.0.0.0/16' // NOSONAR (typescript:S1313:IPADDRESS)
         );
         this.publicSubnets = props.subnetMappings
             ? props.subnetMappings.ingress.map((x) =>
@@ -100,7 +100,7 @@ export class DruidVpc extends constructs.Construct implements ec2.IVpc {
             });
 
             this.addInterfaceEndpoint('cloudwatch-vpc-endpoint', {
-                service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH,
+                service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_MONITORING,
             });
 
             this.addInterfaceEndpoint('logs-vpc-endpoint', {

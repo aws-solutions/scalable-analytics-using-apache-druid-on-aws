@@ -104,7 +104,9 @@ export abstract class DruidStack extends cdk.Stack {
 
         if (props.enableVulnerabilityScanJob) {
             // enable vulnerability scan cron job for fedramp/fips installations
-            new VulnerabilityScan(this, 'vulnerability-scan', {
+            // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+            // prettier-ignore
+            new VulnerabilityScan(this, 'vulnerability-scan', { // NOSONAR (typescript:S1848) - cdk construct is used
                 druidVersion: props.clusterParams.druidVersion,
                 removalPolicy: props.removalPolicy,
             });

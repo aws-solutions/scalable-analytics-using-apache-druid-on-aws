@@ -30,6 +30,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +39,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.amazonaws.services.cloudwatch.model.PutMetricDataRequest;
 import com.amazonaws.services.cloudwatch.model.StandardUnit;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 public class CloudwatchEmitterTest {
@@ -95,8 +99,17 @@ public class CloudwatchEmitterTest {
         eventMetricDatum.setMetricName("event-metric");
         eventMetricDatum.setValue(1.0);
         eventMetricDatum.setUnit(StandardUnit.Count);
+        
+        Dimension dimensionEventMetric = new Dimension();
+        dimensionEventMetric.setName("test-dimension");
+        dimensionEventMetric.setValue("test-value");
+        List<Dimension> dimensionsEventMetric = new ArrayList<>();
+        dimensionsEventMetric.add(dimensionEventMetric);
+
         eventMetricDatum.setDimensions(
-                List.of(new Dimension().withName("test-dimension").withValue("test-value")));
+                dimensionsEventMetric
+        );
+
         ObjectContainer<MetricDatum> eventMetricContainer =
                 emitter.getObjectContainer(eventMetricDatum);
         metricQueue.offer(eventMetricContainer);
@@ -105,8 +118,15 @@ public class CloudwatchEmitterTest {
         alertMetricDatum.setMetricName("alert-metric");
         alertMetricDatum.setValue(1.0);
         alertMetricDatum.setUnit(StandardUnit.Count);
+
+        Dimension dimensionAlertMetric = new Dimension();
+        dimensionAlertMetric.setName("test-dimension");
+        dimensionAlertMetric.setValue("test-value");
+        List<Dimension> dimensionsAlertMetric = new ArrayList<>();
+        dimensionsAlertMetric.add(dimensionEventMetric);
+
         alertMetricDatum.setDimensions(
-                List.of(new Dimension().withName("test-dimension").withValue("test-value")));
+                dimensionsAlertMetric);
         ObjectContainer<MetricDatum> alertMetricContainer =
                 emitter.getObjectContainer(alertMetricDatum);
         alertQueue.offer(alertMetricContainer);

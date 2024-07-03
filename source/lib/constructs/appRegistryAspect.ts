@@ -105,7 +105,7 @@ export class AppRegistry extends Construct implements cdk.IAspect {
     // Add a waiter customer resource to ensure the Resource Group is CREATED.
     private waitForResourceGroupCreated(
         application: appRegistry.Application,
-        vpc: ec2.IVpc,
+        vpc: ec2.IVpc
     ): cdk.CustomResource {
         const lambdaPolicyStatement = new iam.PolicyStatement({
             actions: ['servicecatalog:GetApplication'],
