@@ -38,6 +38,7 @@ user=${USER_NAME}
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/middleManager.log
+stopwaitsecs=30
 EOF
 
 # change ownership of ${USER_NAME} home directory

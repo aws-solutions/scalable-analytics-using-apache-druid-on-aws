@@ -42,12 +42,12 @@ export async function onEventHandler(
     if (event.RequestType === 'Create') {
         const certificate = generateCA();
 
-        fs.writeFileSync('/tmp/output.p12', certificate, 'binary');
+        fs.writeFileSync('/tmp/output.p12', certificate, 'binary'); // NOSONAR (typescript:S5443:directories are used safely here)
 
         await secrets.send(
             new sm.UpdateSecretCommand({
                 SecretId: event.ResourceProperties.TLSSecretId,
-                SecretBinary: fs.readFileSync('/tmp/output.p12'),
+                SecretBinary: fs.readFileSync('/tmp/output.p12'), // NOSONAR (typescript:S5443:directories are used safely here)
             })
         );
     }

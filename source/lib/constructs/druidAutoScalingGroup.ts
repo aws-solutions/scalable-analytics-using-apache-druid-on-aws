@@ -15,8 +15,8 @@
 */
 import * as as from 'aws-cdk-lib/aws-autoscaling';
 import * as cdk from 'aws-cdk-lib';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as utils from '../utils/utils';
 
 import {
@@ -37,9 +37,9 @@ import { BaseInfrastructure } from './baseInfrastructure';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { MetadataStore } from './metadataStore';
+import { SSMAutomation } from './ssmAutomation';
 import { ZooKeeper } from './zookeeper';
 import { readFileSync } from 'fs';
-import { SSMAutomation } from './ssmAutomation';
 
 export interface DruidAutoScalingGroupProps {
     readonly asgContext: DruidAutoScalingGroupContext;
@@ -144,14 +144,17 @@ export class DruidAutoScalingGroup extends Construct {
         nodeTierName: string,
         gracefulTerminationParam: ssm.IStringParameter
     ): void {
-        new as.CfnLifecycleHook(this, 'lifecycle-termination', {
+        // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+        // prettier-ignore
+        new as.CfnLifecycleHook(this, 'lifecycle-termination', { // NOSONAR (typescript:S1848) - cdk construct is used
             autoScalingGroupName: asg.autoScalingGroupName,
             lifecycleTransition: as.LifecycleTransition.INSTANCE_TERMINATING,
             defaultResult: as.DefaultResult.CONTINUE,
             heartbeatTimeout: INSTANCE_TERMINATION_TIMEOUT,
         });
 
-        new SSMAutomation(this, 'ssm-automation', {
+        // prettier-ignore
+        new SSMAutomation(this, 'ssm-automation', { // NOSONAR (typescript:S1848) - cdk construct is used
             nodeType,
             serviceName: `${asgContext.clusterParams.druidClusterName}_${nodeTierName}`,
             secretArn:

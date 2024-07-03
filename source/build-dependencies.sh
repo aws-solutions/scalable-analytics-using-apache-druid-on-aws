@@ -5,7 +5,7 @@ cdk_context="$(npm run -s cdk context -- -j)"
 druid_version=$(echo "$cdk_context" | grep "druidVersion" | awk '/druidVersion/{print $NF}' | tr -d '"' | tr -d ',')
 druid_version=${druid_version:-26.0.0}
 
-druid_operator_version="v1.0.0"
+druid_operator_version="v1.0.1"
 druid_operator_repo="https://github.com/datainfrahq/druid-operator"
 
 do_cmd() 
@@ -48,7 +48,7 @@ build_druid_oidc()
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-oidc/ && \
        mkdir -p ../lib/docker/extensions/druid-oidc/ && \
-       cp -f target/druid-oidc-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
+       cp -f target/druid-oidc-29.0.1-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
 }
 
 download_druid_operator()
