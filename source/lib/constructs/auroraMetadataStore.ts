@@ -54,7 +54,7 @@ export class AuroraMetadataStore extends MetadataStore {
                     metadataStoreConfig.rdsParameterGroupName
                 ),
             }),
-            caCertificate: rds.CaCertificate.RDS_CA_RDS2048_G1,
+            caCertificate: rds.CaCertificate.RDS_CA_RSA2048_G1,
         };
 
         this.dbMasterUserSecret = metadataStoreUtils.createDatabaseSecret(

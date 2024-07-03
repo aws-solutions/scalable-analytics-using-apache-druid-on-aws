@@ -13,7 +13,7 @@ This software includes third party software subject to the following copyrights:
 
 ./source
 ==========
-@aws-cdk/lambda-layer-kubectl-v23@2.0.8                      Apache-2.0
+@aws-cdk/lambda-layer-kubectl-v29@2.0.0                      Apache-2.0
 @aws-cdk/aws-servicecatalogappregistry-alpha@2.99.1-alpha.0  Apache-2.0
 @aws-sdk/client-elastic-load-balancing-v2@3.421.0            Apache-2.0
 @aws-sdk/client-route-53@3.370.0                             Apache-2.0

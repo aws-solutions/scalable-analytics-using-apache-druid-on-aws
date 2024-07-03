@@ -25,7 +25,7 @@ export const configScheme = {
             pattern: '^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}/[0-9]{1,2}$',
             title: 'VPC CIDR',
             description: 'CIDR of the VPC to use.',
-            examples: ['10.0.0.0/16'],
+            examples: ['10.0.0.0/16'], // NOSONAR (typescript:S1313:IPADDRESS)
             $id: '#/properties/vpcCidr',
         },
         vpcId: {
@@ -279,7 +279,8 @@ export const configScheme = {
             type: 'boolean',
             title: 'Enable self management for installation bucket assets',
             $id: '#/properties/selfManageInstallationBucketAssets',
-            description: 'Whether to enable self management for installation bucket assets.',
+            description:
+                'Whether to enable self management for installation bucket assets.',
         },
         environmentAgnostic: {
             type: 'boolean',

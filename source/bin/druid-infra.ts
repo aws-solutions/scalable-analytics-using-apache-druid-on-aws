@@ -35,7 +35,7 @@ import { configScheme } from '../lib/constructs/configScheme';
 
 const solutionId = 'SO0262';
 const solutionName = 'Scalable Analytics using Apache Druid on AWS';
-const solutionVersion = 'v1.0.0';
+const solutionVersion = 'v1.0.1';
 
 const fipsEnabledRegions = [
     'us-east-1',
@@ -172,7 +172,8 @@ const commonStackProps = {
     customAmi: druidConfig.customAmi,
     subnetMappings: druidConfig.subnetMappings,
     enableVulnerabilityScanJob: druidConfig.enableVulnerabilityScanJob ?? false,
-    selfManageInstallationBucketAssets: druidConfig.selfManageInstallationBucketAssets ?? false,
+    selfManageInstallationBucketAssets:
+        druidConfig.selfManageInstallationBucketAssets ?? false,
     ...(!druidConfig.environmentAgnostic && { env: { account, region } }),
 };
 
@@ -234,7 +235,9 @@ switch (druidConfig.druidOperationPlatform) {
             );
         }
 
-        new DruidEc2Stack(app, `DruidEc2Stack-${druidConfig.druidClusterName}`, {
+        // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+        // prettier-ignore
+        new DruidEc2Stack(app, `DruidEc2Stack-${druidConfig.druidClusterName}`, { // NOSONAR (typescript:S1848) - cdk construct is used
             ...commonStackProps,
             initInstallationBucket: true,
             clusterParams: {
@@ -251,7 +254,8 @@ switch (druidConfig.druidOperationPlatform) {
             );
         }
 
-        new DruidEksStack(app, `DruidEksStack-${druidConfig.druidClusterName}`, {
+        // prettier-ignore
+        new DruidEksStack(app, `DruidEksStack-${druidConfig.druidClusterName}`, { // NOSONAR (typescript:S1848) - cdk construct is used
             ...commonStackProps,
             clusterParams: {
                 ...commonDruidClusterParams,

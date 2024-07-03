@@ -81,7 +81,8 @@ public class CloudwatchEmitter implements Emitter {
 
     private final ObjectMapper jsonMapper;
 
-    private final CloudwatchEmitterConfig config;
+    // set to nosonar because it causes a false positive
+    private final CloudwatchEmitterConfig config; // NOSONAR
 
     private final DruidMonitoringMetricsFactory druidMonitoringMetricsFactory;
 

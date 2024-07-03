@@ -61,7 +61,8 @@ export class LoadBalancerControllerCleanup extends Construct {
             onEventHandler: fn,
         });
 
-        new CustomResource(this, 'load-balancer-controller-cr', {
+        // prettier-ignore
+        new CustomResource(this, 'load-balancer-controller-cr', { // NOSONAR (typescript:S1848) - cdk construct is used
             serviceToken: provider.serviceToken,
             properties: {
                 eksClusterId: props.eksClusterId,

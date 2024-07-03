@@ -38,7 +38,7 @@ import { DruidClusterParameters, EksConfig } from '../utils/types';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { BaseInfrastructure } from './baseInfrastructure';
 import { Construct } from 'constructs';
-import { KubectlV23Layer } from '@aws-cdk/lambda-layer-kubectl-v23';
+import { KubectlV29Layer } from '@aws-cdk/lambda-layer-kubectl-v29';
 import { MetadataStore } from './metadataStore';
 
 export interface DruidEksBaseProps {
@@ -116,9 +116,9 @@ export abstract class DruidEksBase extends Construct {
     protected getCommonEksClusterParams(): any {
         return {
             vpc: this.props.baseInfra.vpc,
-            version: eks.KubernetesVersion.of('1.27'),
-            kubectlLayer: new KubectlV23Layer(this, 'KubectlLayer'),
-            albController: { version: eks.AlbControllerVersion.V2_5_1 },
+            version: eks.KubernetesVersion.V1_29,
+            kubectlLayer: new KubectlV29Layer(this, 'KubectlLayer'),
+            albController: { version: eks.AlbControllerVersion.V2_6_2 },
             vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }],
             outputClusterName: true,
             endpointAccess: this.getEndpointAccessType(
@@ -426,8 +426,7 @@ export abstract class DruidEksBase extends Construct {
             oidc_discovery_uri: this.props.druidClusterParams.oidcIdpConfig?.discoveryURI,
             oidc_group_claim_name:
                 this.props.druidClusterParams.oidcIdpConfig?.groupClaimName,
-            oidc_custom_scopes:
-                this.props.druidClusterParams.oidcIdpConfig?.customScopes,
+            oidc_custom_scopes: this.props.druidClusterParams.oidcIdpConfig?.customScopes,
             alb_scheme: this.props.druidClusterParams.internetFacing
                 ? 'internet-facing'
                 : 'internal',

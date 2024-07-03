@@ -133,7 +133,9 @@ export class DruidEc2Stack extends DruidStack {
             'Allow HTTP access to query nodes'
         );
         if (this.webAcl) {
-            new wafv2.CfnWebACLAssociation(this, 'MyCDKWebACLAssociation', {
+            // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
+            // prettier-ignore
+            new wafv2.CfnWebACLAssociation(this, 'MyCDKWebACLAssociation', { // NOSONAR (typescript:S1848) - cdk construct is used
                 resourceArn: appLoadBalancer.loadBalancerArn,
                 webAclArn: this.webAcl.attrArn,
             });
@@ -158,7 +160,8 @@ export class DruidEc2Stack extends DruidStack {
             : `http://${appLoadBalancer.loadBalancerDnsName}`;
 
         if (this.hostedZone && props.route53Params) {
-            new route53.ARecord(this, 'route53-alias-record', {
+            // prettier-ignore
+            new route53.ARecord(this, 'route53-alias-record', { // NOSONAR (typescript:S1848) - cdk construct is used
                 zone: this.hostedZone,
                 target: route53.RecordTarget.fromAlias(
                     new LoadBalancerTarget(appLoadBalancer)
@@ -202,7 +205,7 @@ export class DruidEc2Stack extends DruidStack {
         dataAsgList.forEach((dataAsg) => {
             if (this.baseInfra.druidImageDeployment) {
                 dataAsg.autoScalingGroup.node.addDependency(
-                    this.baseInfra.druidImageDeployment!,
+                    this.baseInfra.druidImageDeployment
                 );
             }
             dataAsg.autoScalingGroup.node.addDependency(
@@ -227,7 +230,8 @@ export class DruidEc2Stack extends DruidStack {
             masterAsg.autoScalingGroup.node.addDependency(queryAsg.autoScalingGroup);
         });
 
-        new OperationalMetricsCollection(this, 'metrics-collection', {
+        // prettier-ignore
+        new OperationalMetricsCollection(this, 'metrics-collection', { // NOSONAR (typescript:S1848) - cdk construct is used
             vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
@@ -238,7 +242,8 @@ export class DruidEc2Stack extends DruidStack {
         });
 
         if (props.clusterParams.druidRetentionRules) {
-            new RetentionConfig(this, 'druid-retention-config', {
+            // prettier-ignore
+            new RetentionConfig(this, 'druid-retention-config', { // NOSONAR (typescript:S1848) - cdk construct is used
                 vpc: this.baseInfra.vpc,
                 retentionRules: props.clusterParams.druidRetentionRules,
                 druidEndpoint: this.druidBaseUrl,
@@ -274,7 +279,8 @@ export class DruidEc2Stack extends DruidStack {
             props.removalPolicy
         );
 
-        new cdk.CfnOutput(this, 'druid-base-url', {
+        // prettier-ignore
+        new cdk.CfnOutput(this, 'druid-base-url', { // NOSONAR (typescript:S1848) - cdk construct is used
             value: this.druidBaseUrl,
         });
     }
@@ -1011,7 +1017,8 @@ export class DruidEc2Stack extends DruidStack {
             );
         });
 
-        new MonitoringDashboard(this, 'druid-ops-dashboard', {
+        // prettier-ignore
+        new MonitoringDashboard(this, 'druid-ops-dashboard', { // NOSONAR (typescript:S1848) - cdk construct is used
             druidClusterName,
             albName: appLoadBalancer.loadBalancerFullName,
             computeWidgets,
@@ -1037,7 +1044,8 @@ export class DruidEc2Stack extends DruidStack {
             );
         });
 
-        new DruidAlarms(this, 'alarms', {
+        // prettier-ignore
+        new DruidAlarms(this, 'alarms', { // NOSONAR (typescript:S1848) - cdk construct is used
             druidClusterName,
             loadBalancerFullName: appLoadBalancer.loadBalancerFullName,
             targetGroupName: queryTargetGroup.targetGroupFullName,

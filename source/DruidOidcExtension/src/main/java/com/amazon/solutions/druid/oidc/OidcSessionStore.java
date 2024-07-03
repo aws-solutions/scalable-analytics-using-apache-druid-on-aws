@@ -25,7 +25,7 @@ import org.apache.druid.java.util.common.StringUtils;
 import org.apache.druid.java.util.common.logger.Logger;
 import org.pac4j.core.context.ContextHelper;
 import org.pac4j.core.context.Cookie;
-import org.pac4j.core.context.Pac4jConstants;
+import org.pac4j.core.util.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.exception.TechnicalException;
@@ -38,6 +38,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -75,14 +76,14 @@ public class OidcSessionStore<T extends WebContext> implements SessionStore<T> {
 
     @Nullable
     @Override
-    public Object get(WebContext context, String key) {
+    public Optional<Object> get(WebContext context, String key) {
         final Cookie cookie = ContextHelper.getCookie(context, PAC4J_SESSION_PREFIX + key);
         Object value = null;
         if (cookie != null) {
             value = uncompressDecryptBase64(cookie.getValue());
         }
         LOGGER.debug("Get from session: [%s] = [%s]", key, value);
-        return value;
+        return Optional.ofNullable(value);
     }
 
     @Override
@@ -134,7 +135,7 @@ public class OidcSessionStore<T extends WebContext> implements SessionStore<T> {
         if (v != null && !v.isEmpty()) {
             byte[] bytes = StringUtils.decodeBase64String(v);
             if (bytes != null) {
-                return javaSerializationHelper.unserializeFromBytes(unCompress(cryptoService.decrypt(bytes)));
+                return javaSerializationHelper.deserializeFromBytes(unCompress(cryptoService.decrypt(bytes)));
             }
         }
         return null;
@@ -163,18 +164,18 @@ public class OidcSessionStore<T extends WebContext> implements SessionStore<T> {
     private Object clearUserProfile(final Object value) {
         if (value instanceof Map<?, ?>) {
             final Map<String, CommonProfile> profiles = (Map<String, CommonProfile>) value;
-            profiles.forEach((name, profile) -> profile.clearSensitiveData());
+            profiles.forEach((name, profile) -> profile.removeLoginData());
             return profiles;
         } else {
             final CommonProfile profile = (CommonProfile) value;
-            profile.clearSensitiveData();
+            profile.removeLoginData();
             return profile;
         }
     }
 
     @Override
-    public SessionStore buildFromTrackableSession(WebContext arg0, Object arg1) {
-        return null;
+    public Optional<SessionStore<T>> buildFromTrackableSession(WebContext arg0, Object arg1) {
+        return Optional.empty();
     }
 
     @Override
@@ -183,8 +184,8 @@ public class OidcSessionStore<T extends WebContext> implements SessionStore<T> {
     }
 
     @Override
-    public Object getTrackableSession(WebContext arg0) {
-        return null;
+    public Optional getTrackableSession(WebContext arg0) {
+        return Optional.empty();
     }
 
     @Override
