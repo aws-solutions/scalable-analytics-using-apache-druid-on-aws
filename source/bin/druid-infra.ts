@@ -35,7 +35,7 @@ import { configScheme } from '../lib/constructs/configScheme';
 
 const solutionId = 'SO0262';
 const solutionName = 'Scalable Analytics using Apache Druid on AWS';
-const solutionVersion = 'v1.0.1';
+const solutionVersion = 'v1.0.2';
 
 const fipsEnabledRegions = [
     'us-east-1',
