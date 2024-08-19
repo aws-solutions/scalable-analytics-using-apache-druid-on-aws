@@ -21,7 +21,7 @@
 # Parameters:
 #  - source-bucket-base-name: Name for the S3 bucket location where the template will source the Lambda
 #    code from. The template will append '-[region_name]' to this bucket name.
-#    For example: ./build-s3-dist.sh solutions v1.0.2
+#    For example: ./build-s3-dist.sh solutions v1.0.3
 #    The template will then expect the source code to be located in the solutions-[region_name] bucket
 #  - solution-name: name of the solution for consistency
 #  - version-code: version of the package
@@ -60,7 +60,7 @@ usage()
 {
     echo "Usage: $0 bucket solution-name version"
     echo "Please provide the base source bucket name, trademarked solution name, and version." 
-    echo "For example: ./build-s3-dist.sh mybucket my-solution v1.0.2" 
+    echo "For example: ./build-s3-dist.sh mybucket my-solution v1.0.3" 
     exit 1 
 }
 
@@ -214,6 +214,9 @@ cleanup_temporary_generted_files()
 
     # Delete the downloaded files
     do_cmd rm -rf druid-bin zookeeper-bin
+
+    # Cleanup the generated runtime version files
+    do_cmd rm -f lib/uploads/config/*_version.txt 
 }
 
 fn_exists()
