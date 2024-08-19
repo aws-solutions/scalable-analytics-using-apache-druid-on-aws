@@ -4,6 +4,7 @@ build/
 **/.vscode/*
 reports/
 coverage/
+coverage-reports/
 .aws-sam/
 output/
 target
@@ -12,6 +13,15 @@ druid-bin
 **/docker/extensions/**
 zookeeper-bin
 *_version.txt
+
+# Python build files
+.venv/
+__pycache__/
+py_modules/
+
+# derived build assets
+**/deployment/global-s3-assets
+**/deployment/regional-s3-assets
 
 *.js
 !jest.config.js

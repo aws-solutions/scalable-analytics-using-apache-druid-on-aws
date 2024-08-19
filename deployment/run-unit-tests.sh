@@ -13,6 +13,20 @@
 [ "$DEBUG" == 'true' ] && set -x
 set -e
 
+venv_folder="./.venv/"
+
+setup_python_env() {
+    if [ -d "$venv_folder" ]; then
+        echo "Re-using Python venv in $venv_folder"
+        return
+    fi
+
+    python3 -m venv $venv_folder
+    source $venv_folder/bin/activate
+    pip3 install -q -r requirements.txt -r requirements-test.txt
+    deactivate
+}
+
 prepare_jest_coverage_report() {
 	local component_name=$1
 
@@ -27,6 +41,40 @@ prepare_jest_coverage_report() {
     coverage_report_path=$coverage_reports_top_path/jest/$component_name
     rm -fr $coverage_report_path
     mv coverage $coverage_report_path
+}
+
+run_python_test() {
+    local component_path=$1
+    local component_name=$2
+
+    echo "------------------------------------------------------------------------------"
+    echo "[Test] Run lambda unit test with coverage for $component_path $component_name"
+    echo "------------------------------------------------------------------------------"
+
+    [ "${CLEAN:-true}" = "true" ] && rm -rf $venv_folder
+
+    setup_python_env
+    source $venv_folder/bin/activate
+
+    pytest_coverage_report_path=$coverage_reports_top_path/pytest
+    mkdir -p $pytest_coverage_report_path
+    coverage_report_path=$pytest_coverage_report_path/$component_name.coverage.xml
+    echo "Coverage report path set to $coverage_report_path"
+
+    python3 -m pytest --cov --cov-report=term-missing --cov-report "xml:$coverage_report_path"
+    if [ "$?" = "1" ]; then
+        echo "(deployment/run-unit-tests.sh) ERROR: there is likely output above." 1>&2
+        exit 1
+    fi
+
+	sed -i -e "s,<source>$source_dir,<source>source,g" $coverage_report_path
+
+    deactivate
+
+    if [ "${CLEAN:-true}" = "true" ]; then
+        # Note: leaving $source_dir/test/coverage-reports to allow further processing of coverage reports
+        rm -rf $venv_folder coverage .coverage
+    fi
 }
 
 run_javascript_test() {
@@ -65,7 +113,7 @@ run_cdk_project_test() {
 	# export overrideWarningsEnabled=false
 
 	# run unit tests
-	npm run test -- -u
+	npm run test:jest -- -u
 
     # prepare coverage reports
 	prepare_jest_coverage_report $component_name
@@ -89,6 +137,19 @@ echo "Running unit tests"
 # Get reference for source folder
 source_dir="$(cd $PWD/../source; pwd -P)"
 coverage_reports_top_path=$source_dir/coverage-reports
+
+# Test the Python Lambda functions
+cd $source_dir/lib/lambdas
+for folder in */ ; do
+    cd "$folder"
+    function_name=${PWD##*/}
+
+    if [ -e "requirements.txt" ]; then
+        run_python_test $source_dir/lib/lambdas $function_name
+    fi
+
+    cd ..
+done
 
 # Test the CDK project
 run_cdk_project_test $source_dir

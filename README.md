@@ -126,6 +126,7 @@ The solution deploys the following components that work together to provide a pr
 -   The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
 -   The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
 -   [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
+-   [Python](https://www.python.org/) version 3.12 or newer.
 -   [Git](https://git-scm.com/) command line
 -   Java Runtime
     -   The solution requires a Java 8 Runtime. We strongly recommend using [Amazon Corretto 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html). Alternatively, you can also use other OpenJDKs such as [Eclipse Temurin](https://adoptium.net/en-GB/temurin/releases/?version=8).
@@ -294,7 +295,7 @@ It is important to note that the redirect URI on the IDP side should be configur
 -   **Druid version**: Apache Druid release version (eg. 27.0.0) that you want to run. It is recommended to use the latest stable [Druid version](#https://druid.apache.org/downloads.html).
 
     ```
-    "druidVersion": "27.0.0",
+    "druidVersion": "30.0.0",
     ```
 
 -   **Druid cluster name**: A sequence of ASCII characters that uniquely identifies each Druid cluster. If there are multiple deployments, please make sure that you have an unique cluster name for each cluster. The cluster name will be appended to the CloudFormation stack name.
@@ -797,6 +798,7 @@ Upon successfully cloning the repository into your local development environment
 |- NOTICE.txt                   - Copyrights for this solution.
 |- THIRDPARTY_LICENSE.txt       - Copyrights licenses for third party software that was used in this solution
 |- README.md                    - this file.
+|- SECURITY.md                  - detailed information about reporting security issues.
 ```
 
 ---

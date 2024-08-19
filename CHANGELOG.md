@@ -5,9 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2024-08-19
+
+### Security
+
+- Upgrade Zookeeper to the latest patch version of v3.8.4
+- Upgrade Druid to v30.0.0
+- Upgrade Druid-Operator to be v1.2.3
+- EC2 instances now require IMDSv2
+- Patch axios vulnerability
+
+### Fixed
+
+- Empty S3 buckets during teardown if needed
+- Gracefully delete CloudWatch Synthetics Canary network interfaces
+
 ## [1.0.2] - 2024-08-07
 
 ### Security
+
 - Patched fast-xml-parser vulnerability
 
 ## [1.0.1] - 2024-07-01
