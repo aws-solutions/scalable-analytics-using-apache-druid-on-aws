@@ -26,7 +26,7 @@ import { CfnGuardResourcePathRulesSuppressionAspect } from '../lib/constructs/cf
 
 const solutionId = 'SO0262';
 const solutionName = 'Scalable Analytics using Apache Druid on AWS';
-const solutionVersion = 'v1.0.3';
+const solutionVersion = 'v1.0.4';
 
 const fipsEnabledRegions = [
     'us-east-1',
