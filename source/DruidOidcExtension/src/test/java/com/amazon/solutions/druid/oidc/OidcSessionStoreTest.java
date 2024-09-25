@@ -1,20 +1,6 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
  */
 package com.amazon.solutions.druid.oidc;
 
@@ -26,6 +12,7 @@ import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class OidcSessionStoreTest {
     @Test
@@ -51,7 +38,7 @@ public class OidcSessionStoreTest {
         EasyMock.expect(webContext2.getRequestCookies()).andReturn(Collections.singletonList(cookie));
         EasyMock.replay(webContext2);
 
-        Assert.assertEquals("value", sessionStore.get(webContext2, "key"));
+        Assert.assertEquals(Optional.of("value"), sessionStore.get(webContext2, "key"));
     }
 
     @Test
@@ -69,9 +56,9 @@ public class OidcSessionStoreTest {
 
         Cookie cookie = cookieCapture.getValue();
         Assert.assertNull(cookie.getValue());
-        Assert.assertNull(sessionStore.buildFromTrackableSession(webContext, cookie));
+        Assert.assertFalse(sessionStore.buildFromTrackableSession(webContext, cookie).isPresent());
         Assert.assertFalse(sessionStore.destroySession(webContext));
-        Assert.assertNull(sessionStore.getTrackableSession(webContext));
+        Assert.assertFalse(sessionStore.getTrackableSession(webContext).isPresent());
         Assert.assertFalse(sessionStore.renewSession(webContext));
     }
 }

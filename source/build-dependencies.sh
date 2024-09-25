@@ -3,9 +3,9 @@ set -e
 cdk_context="$(npm run -s cdk context -- -j)"
 
 druid_version=$(echo "$cdk_context" | grep "druidVersion" | awk '/druidVersion/{print $NF}' | tr -d '"' | tr -d ',')
-druid_version=${druid_version:-26.0.0}
+druid_version=${druid_version:-30.0.0}
 
-druid_operator_version="v1.0.0"
+druid_operator_version="v1.2.3"
 druid_operator_repo="https://github.com/datainfrahq/druid-operator"
 
 do_cmd() 
@@ -48,7 +48,7 @@ build_druid_oidc()
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-oidc/ && \
        mkdir -p ../lib/docker/extensions/druid-oidc/ && \
-       cp -f target/druid-oidc-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
+       cp -f target/druid-oidc-29.0.1-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
 }
 
 download_druid_operator()
@@ -97,7 +97,7 @@ download_druid()
 download_zookeeper() 
 {
     local zookeeper_version=$(echo "$cdk_context"  | grep "zookeeperVersion" | awk '/zookeeperVersion/{print $NF}' | tr -d '"' | tr -d ',')
-    zookeeper_version=${zookeeper_version:-3.8.0}
+    zookeeper_version=${zookeeper_version:-3.8.4}
     download_url="https://archive.apache.org/dist/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz"
     download_and_verify_file "$zookeeper_version" "$download_url" "./zookeeper-bin" "apache-zookeeper"
 }
@@ -179,6 +179,21 @@ search_ec2_instance_types()
     done
 }
 
+install_lambda_dependencies()
+{
+    # For each folder in lib/lambdas, install the dependencies
+    for folder in lib/lambdas/*; do
+        if [ -d "$folder" ]; then
+            # If the folder contains a requirements.txt file, install the dependencies
+            if [ -f "$folder/requirements.txt" ]; then
+                echo "Installing dependencies for $folder"
+                rm -rf "$folder/py_modules"
+                pip3 install -r "$folder/requirements.txt" -t "$folder/py_modules"
+            fi
+        fi
+    done
+}
+
 do_cmd check_tools git
 do_cmd check_tools mvn
 do_cmd check_tools javac
@@ -186,6 +201,8 @@ do_cmd check_tools curl
 do_cmd check_tools docker
 do_cmd check_tools aws
 do_cmd check_tools jq
+
+do_cmd install_lambda_dependencies
 
 do_cmd build_config_version_tree
 
