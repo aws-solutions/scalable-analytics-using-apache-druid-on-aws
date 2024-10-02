@@ -37,6 +37,7 @@ import {
 } from "../utils/types";
 
 import { Construct } from "constructs";
+import { v4 as uuidv4 } from 'uuid';
 import { DruidVpc } from "./druidVpc";
 import { addCfnNagSuppression } from "./cfnNagSuppression";
 
@@ -143,7 +144,7 @@ export class BaseInfrastructure extends Construct {
           destinationBucket: this.installationBucket,
           destinationKeyPrefix: SCRIPTS_FOLDER,
           vpc: this.vpc,
-          metadata: { "test": "test" },
+          metadata: { "version": uuidv4() },
         });
 
         new BucketDeployment(this, "bucket-deployment-extensions", {
@@ -160,7 +161,7 @@ export class BaseInfrastructure extends Construct {
           destinationKeyPrefix: CONFIG_FOLDER,
           exclude: ["*_version.txt"],
           vpc: this.vpc,
-          metadata: { "test": "test" },
+          metadata: { "version": uuidv4() },
         });
 
         new BucketDeployment(this, "bucket-deployment-rds-ca-bundle", {
@@ -168,7 +169,7 @@ export class BaseInfrastructure extends Construct {
           destinationBucket: this.installationBucket,
           destinationKeyPrefix: "ca-certs",
           vpc: this.vpc,
-          metadata: { "test": "test" },
+          metadata: { "version": uuidv4() },
         });
 
         this.druidImageDeployment = new BucketDeployment(
@@ -192,6 +193,7 @@ export class BaseInfrastructure extends Construct {
             destinationBucket: this.installationBucket,
             destinationKeyPrefix: ZOOKEEPER_IMAGE_FOLDER,
             vpc: this.vpc,
+            metadata: { "version": uuidv4() },
           },
         );
       }
