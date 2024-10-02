@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -22,17 +33,16 @@ import {
     EKS_INITIAL_PROBE_DELAY,
     RUNTIME_PROPERTIES_PREFIX_FILTERS,
 } from '../utils/constants';
-import { CustomAmi, DruidClusterParameters, EksConfig } from '../utils/types';
+import { DruidClusterParameters, EksConfig } from '../utils/types';
 
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { BaseInfrastructure } from './baseInfrastructure';
 import { Construct } from 'constructs';
-import { KubectlV29Layer } from '@aws-cdk/lambda-layer-kubectl-v29';
+import { KubectlV23Layer } from '@aws-cdk/lambda-layer-kubectl-v23';
 import { MetadataStore } from './metadataStore';
 
 export interface DruidEksBaseProps {
     baseInfra: BaseInfrastructure;
-    customAmi?: CustomAmi;
     eksClusterConfig: EksConfig;
     druidClusterParams: DruidClusterParameters;
     acmCertificate?: acm.ICertificate;
@@ -106,9 +116,9 @@ export abstract class DruidEksBase extends Construct {
     protected getCommonEksClusterParams(): any {
         return {
             vpc: this.props.baseInfra.vpc,
-            version: eks.KubernetesVersion.V1_29,
-            kubectlLayer: new KubectlV29Layer(this, 'KubectlLayer'),
-            albController: { version: eks.AlbControllerVersion.V2_6_2 },
+            version: eks.KubernetesVersion.of('1.27'),
+            kubectlLayer: new KubectlV23Layer(this, 'KubectlLayer'),
+            albController: { version: eks.AlbControllerVersion.V2_5_1 },
             vpcSubnets: [{ subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS }],
             outputClusterName: true,
             endpointAccess: this.getEndpointAccessType(
@@ -416,7 +426,8 @@ export abstract class DruidEksBase extends Construct {
             oidc_discovery_uri: this.props.druidClusterParams.oidcIdpConfig?.discoveryURI,
             oidc_group_claim_name:
                 this.props.druidClusterParams.oidcIdpConfig?.groupClaimName,
-            oidc_custom_scopes: this.props.druidClusterParams.oidcIdpConfig?.customScopes,
+            oidc_custom_scopes:
+                this.props.druidClusterParams.oidcIdpConfig?.customScopes,
             alb_scheme: this.props.druidClusterParams.internetFacing
                 ? 'internet-facing'
                 : 'internal',

@@ -57,7 +57,7 @@ mv apache-zookeeper-{{ZK_VERSION}}-bin apache-zookeeper
 # Configure CloudWatch agent
 aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/cloudwatch-agent/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/
 
-echo " >>druid>> starting CloudWatch agent $(date)"
+echo " >>zookeeper>> starting CloudWatch agent $(date)"
 sed -i \
     -e "s|<DRUID_COMPONENT>|zookeeper|g" \
     -e "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" \

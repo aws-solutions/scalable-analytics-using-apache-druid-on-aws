@@ -35,12 +35,11 @@
         "@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy": true,
         "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
 
-        "retainData": false,
         "vpcCidr": "10.120.0.0/16",
         "route53HostedZoneName": "example.com",
         "route53HostedZoneId": "Z0XXXXXXXXXXXXXX",
         "druidDomain": "druid.example.com",
-        "druidVersion": "30.0.0",
+        "druidVersion": "27.0.0",
         "druidOperationPlatform": "ec2",
         "druidClusterName": "dev",
         "internetFacing": true,

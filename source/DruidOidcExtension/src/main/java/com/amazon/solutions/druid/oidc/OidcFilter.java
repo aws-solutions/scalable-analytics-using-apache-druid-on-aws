@@ -1,6 +1,20 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package com.amazon.solutions.druid.oidc;
@@ -9,15 +23,14 @@ import org.apache.druid.java.util.common.logger.Logger;
 import org.apache.druid.server.security.AuthConfig;
 import org.apache.druid.server.security.AuthenticationResult;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.JEEContext;
+import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
-import org.pac4j.core.http.adapter.JEEHttpActionAdapter;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.core.profile.UserProfile;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -35,9 +48,11 @@ public class OidcFilter implements Filter {
 
     private final Config pac4jConfig;
     private final OidcConfig oidcConfig;
-    private final SecurityLogic<Object, JEEContext> securityLogic;
-    private final CallbackLogic<Object, JEEContext> callbackLogic;
-    private final SessionStore<JEEContext> sessionStore;
+    private final SecurityLogic<CommonProfile, J2EContext> securityLogic;
+    private final CallbackLogic<CommonProfile, J2EContext> callbackLogic;
+    private final SessionStore<J2EContext> sessionStore;
+    private static final HttpActionAdapter<CommonProfile, J2EContext> NOOP_HTTP_ACTION_ADAPTER = (int code,
+            J2EContext ctx) -> null;
 
     private final String name;
     private final String authorizerName;
@@ -49,8 +64,8 @@ public class OidcFilter implements Filter {
     }
 
     public OidcFilter(String name, String authorizerName, Config pac4jConfig, OidcConfig oidcConfig,
-            String cookiePassphrase, SecurityLogic<Object, JEEContext> securityLogic,
-            CallbackLogic<Object, JEEContext> callbackLogic) {
+            String cookiePassphrase, SecurityLogic<CommonProfile, J2EContext> securityLogic,
+            CallbackLogic<CommonProfile, J2EContext> callbackLogic) {
         this.pac4jConfig = pac4jConfig;
         this.oidcConfig = oidcConfig;
         this.securityLogic = securityLogic;
@@ -81,20 +96,20 @@ public class OidcFilter implements Filter {
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        JEEContext context = new JEEContext(httpServletRequest, httpServletResponse, sessionStore);
+        J2EContext context = new J2EContext(httpServletRequest, httpServletResponse, sessionStore);
 
         if (OidcCallbackResource.SELF_URL.equals(httpServletRequest.getRequestURI())) {
             callbackLogic.perform(
                     context,
                     pac4jConfig,
-                    JEEHttpActionAdapter.INSTANCE,
+                    NOOP_HTTP_ACTION_ADAPTER,
                     "/",
                     true, false, false, null);
         } else {
-            CommonProfile profile = (CommonProfile) securityLogic.perform(
+            CommonProfile profile = securityLogic.perform(
                     context,
                     pac4jConfig,
-                    (JEEContext ctx, Collection<UserProfile> profiles, Object... parameters) -> {
+                    (J2EContext ctx, Collection<CommonProfile> profiles, Object... parameters) -> {
                         if (profiles.isEmpty()) {
                             logger.warn("No profiles found after OIDC auth.");
                             return null;
@@ -102,21 +117,17 @@ public class OidcFilter implements Filter {
                             return profiles.iterator().next();
                         }
                     },
-                    JEEHttpActionAdapter.INSTANCE,
-                    null, "none", null, null);
-            // Changed the Authorizer from null to "none".
-            // In the older version, if it is null, it simply grant access and returns
-            // authorized.
-            // But in the newer pac4j version, it uses CsrfAuthorizer as default, And
-            // because of this, It was returning 403 in API calls.
-            if (profile != null && profile.getId() != null) {
+                    NOOP_HTTP_ACTION_ADAPTER,
+                    null, null, null, null);
+
+            if (profile != null) {
                 logger.debug("Oidc attributes [%s]", profile.getAttributes());
                 logger.debug("Group claim [%s]", profile.getAttribute(oidcConfig.getGroupClaimName()));
 
                 AuthenticationResult authenticationResult = new AuthenticationResult(profile.getId(),
-                    authorizerName, name, profile.getAttributes());
-                httpServletRequest.setAttribute(AuthConfig.DRUID_AUTHENTICATION_RESULT, 
-                    authenticationResult);
+                        authorizerName, name, profile.getAttributes());
+                httpServletRequest.setAttribute(AuthConfig.DRUID_AUTHENTICATION_RESULT,
+                        authenticationResult);
                 filterChain.doFilter(httpServletRequest, httpServletResponse);
             }
         }

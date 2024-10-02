@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 import * as forge from 'node-forge';
 import * as fs from 'fs';
@@ -31,12 +42,12 @@ export async function onEventHandler(
     if (event.RequestType === 'Create') {
         const certificate = generateCA();
 
-        fs.writeFileSync('/tmp/output.p12', certificate, 'binary'); // NOSONAR (typescript:S5443:directories are used safely here)
+        fs.writeFileSync('/tmp/output.p12', certificate, 'binary');
 
         await secrets.send(
             new sm.UpdateSecretCommand({
                 SecretId: event.ResourceProperties.TLSSecretId,
-                SecretBinary: fs.readFileSync('/tmp/output.p12'), // NOSONAR (typescript:S5443:directories are used safely here)
+                SecretBinary: fs.readFileSync('/tmp/output.p12'),
             })
         );
     }

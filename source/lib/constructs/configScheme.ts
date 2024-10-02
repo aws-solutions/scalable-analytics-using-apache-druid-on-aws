@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZOOKEEPER_DEFAULT_VERSION } from '../utils/constants';
@@ -14,7 +25,7 @@ export const configScheme = {
             pattern: '^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}/[0-9]{1,2}$',
             title: 'VPC CIDR',
             description: 'CIDR of the VPC to use.',
-            examples: ['10.0.0.0/16'], // NOSONAR (typescript:S1313:IPADDRESS)
+            examples: ['10.0.0.0/16'],
             $id: '#/properties/vpcCidr',
         },
         vpcId: {
@@ -84,7 +95,7 @@ export const configScheme = {
             title: 'Zookeeper Version',
             $id: '#/properties/zookeeperVersion',
             description: 'Version of Zookeeper to use.',
-            examples: ['3.8.4'],
+            examples: ['3.8.0'],
         },
         druidVersion: {
             type: 'string',
@@ -94,7 +105,7 @@ export const configScheme = {
             title: 'Druid Version',
             $id: '#/properties/druidVersion',
             description: 'Version of Druid to use.',
-            examples: ['29.0.0', '30.0.0'],
+            examples: ['25.0.0', '26.0.0'],
         },
         druidExtensions: {
             type: 'array',
@@ -268,8 +279,7 @@ export const configScheme = {
             type: 'boolean',
             title: 'Enable self management for installation bucket assets',
             $id: '#/properties/selfManageInstallationBucketAssets',
-            description:
-                'Whether to enable self management for installation bucket assets.',
+            description: 'Whether to enable self management for installation bucket assets.',
         },
         environmentAgnostic: {
             type: 'boolean',

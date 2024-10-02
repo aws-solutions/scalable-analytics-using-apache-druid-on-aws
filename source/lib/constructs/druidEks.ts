@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 import * as cdk from 'aws-cdk-lib';
 import * as constants from '../utils/constants';
@@ -216,50 +227,23 @@ export class DruidEks extends DruidEksBase {
         const nodeGroupConfig = this.props.eksClusterConfig
             .capacityProviderConfig as EksNodeGroupConfig;
 
-        const launchTemplateEksZooKeeper = new ec2.CfnLaunchTemplate(
-            this,
-            'DruidEKSLaunchTemplateForZooKeeper',
-            {
-                launchTemplateData: {
-                    blockDeviceMappings: [
-                        {
-                            deviceName: this.decideEBSDeviceName(this.props),
-                            ebs: {
-                                deleteOnTermination: true,
-                                encrypted: true,
-                                volumeSize:
-                                    nodeGroupConfig.zookeeper.rootVolumeSize ??
-                                    constants.DEFAULT_ROOT_VOLUME_SIZE,
-                            },
-                        },
-                    ],
-                    instanceType: nodeGroupConfig.zookeeper.instanceType,
-                    metadataOptions: {
-                        httpEndpoint: 'enabled',
-                        httpProtocolIpv6: 'enabled',
-                        httpPutResponseHopLimit: 1,
-                        httpTokens: ec2.LaunchTemplateHttpTokens.REQUIRED,
-                        instanceMetadataTags: 'enabled',
-                    },
-                },
-            }
-        );
-
         // only create managed node group when minSize is greater than 0, this allows
         // to maintain 0 instance for standby clusters
         if (nodeGroupConfig.zookeeper.minNodes > 0) {
             const zkNodeGroup = this.eksCluster.addNodegroupCapacity(
                 'zookeeper-node-group',
                 {
+                    instanceTypes: [
+                        new ec2.InstanceType(nodeGroupConfig.zookeeper.instanceType),
+                    ],
                     minSize: nodeGroupConfig.zookeeper.minNodes,
                     maxSize: nodeGroupConfig.zookeeper.maxNodes,
+                    diskSize:
+                        nodeGroupConfig.zookeeper.rootVolumeSize ??
+                        constants.DEFAULT_ROOT_VOLUME_SIZE,
                     labels: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         'druid/nodeType': 'zookeeper',
-                    },
-                    launchTemplateSpec: {
-                        id: launchTemplateEksZooKeeper.ref,
-                        version: launchTemplateEksZooKeeper.attrLatestVersionNumber,
                     },
                 }
             );
@@ -271,47 +255,18 @@ export class DruidEks extends DruidEksBase {
         const [middleManagerTiers, historicalTiers, dataNodeGroupTiers] =
             this.createDataTiers(nodeGroupConfig);
 
-        const launchTemplateEksQuery = new ec2.CfnLaunchTemplate(
-            this,
-            'DruidEKSLaunchTemplateForQuery',
-            {
-                launchTemplateData: {
-                    blockDeviceMappings: [
-                        {
-                            deviceName: this.decideEBSDeviceName(this.props),
-                            ebs: {
-                                deleteOnTermination: true,
-                                encrypted: true,
-                                volumeSize:
-                                    nodeGroupConfig.query.rootVolumeSize ??
-                                    constants.DEFAULT_ROOT_VOLUME_SIZE,
-                            },
-                        },
-                    ],
-                    instanceType: nodeGroupConfig.query.instanceType,
-                    metadataOptions: {
-                        httpEndpoint: 'enabled',
-                        httpProtocolIpv6: 'enabled',
-                        httpPutResponseHopLimit: 1,
-                        httpTokens: ec2.LaunchTemplateHttpTokens.REQUIRED,
-                        instanceMetadataTags: 'enabled',
-                    },
-                },
-            }
-        );
-
         let queryNodeGroup: eks.Nodegroup | undefined;
         if (nodeGroupConfig.query.minNodes > 0) {
             queryNodeGroup = this.eksCluster.addNodegroupCapacity('query-node-group', {
+                instanceTypes: [new ec2.InstanceType(nodeGroupConfig.query.instanceType)],
                 minSize: nodeGroupConfig.query.minNodes,
                 maxSize: nodeGroupConfig.query.maxNodes,
+                diskSize:
+                    nodeGroupConfig.query.rootVolumeSize ??
+                    constants.DEFAULT_ROOT_VOLUME_SIZE,
                 labels: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'druid/nodeType': 'druid-query',
-                },
-                launchTemplateSpec: {
-                    id: launchTemplateEksQuery.ref,
-                    version: launchTemplateEksQuery.attrLatestVersionNumber,
                 },
             });
             queryNodeGroup.role.addManagedPolicy(
@@ -324,47 +279,20 @@ export class DruidEks extends DruidEksBase {
             }
         }
 
-        const launchTemplateEksMaster = new ec2.CfnLaunchTemplate(
-            this,
-            'DruidEKSLaunchTemplateForMaster',
-            {
-                launchTemplateData: {
-                    blockDeviceMappings: [
-                        {
-                            deviceName: this.decideEBSDeviceName(this.props),
-                            ebs: {
-                                deleteOnTermination: true,
-                                encrypted: true,
-                                volumeSize:
-                                    nodeGroupConfig.master.rootVolumeSize ??
-                                    constants.DEFAULT_ROOT_VOLUME_SIZE,
-                            },
-                        },
-                    ],
-                    instanceType: nodeGroupConfig.master.instanceType,
-                    metadataOptions: {
-                        httpEndpoint: 'enabled',
-                        httpProtocolIpv6: 'enabled',
-                        httpPutResponseHopLimit: 1,
-                        httpTokens: ec2.LaunchTemplateHttpTokens.REQUIRED,
-                        instanceMetadataTags: 'enabled',
-                    },
-                },
-            }
-        );
-
         let masterNodeGroup: eks.Nodegroup | undefined;
         if (nodeGroupConfig.master.minNodes > 0) {
             masterNodeGroup = this.eksCluster.addNodegroupCapacity('master-node-group', {
+                instanceTypes: [
+                    new ec2.InstanceType(nodeGroupConfig.master.instanceType),
+                ],
                 minSize: nodeGroupConfig.master.minNodes,
                 maxSize: nodeGroupConfig.master.maxNodes,
+                diskSize:
+                    nodeGroupConfig.master.rootVolumeSize ??
+                    constants.DEFAULT_ROOT_VOLUME_SIZE,
                 labels: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'druid/nodeType': 'druid-master',
-                },
-                launchTemplateSpec: {
-                    id: launchTemplateEksMaster.ref,
-                    version: launchTemplateEksMaster.attrLatestVersionNumber,
                 },
             });
             masterNodeGroup.role.addManagedPolicy(
@@ -606,38 +534,12 @@ export class DruidEks extends DruidEksBase {
             const minSizePerAz = nodeGroupConfig[nodeType].minNodes / availabilityZoneCnt;
 
             availabilityZones.forEach((availabilityZone) => {
-                const launchTemplateEks = new ec2.CfnLaunchTemplate(
-                    this,
-                    `${nodeType}-DruidEKSLaunchTemplateForEC2-${availabilityZone}`,
-                    {
-                        launchTemplateData: {
-                            blockDeviceMappings: [
-                                {
-                                    deviceName: this.decideEBSDeviceName(this.props),
-                                    ebs: {
-                                        deleteOnTermination: true,
-                                        encrypted: true,
-                                        volumeSize:
-                                            nodeGroupConfig[nodeType].rootVolumeSize ??
-                                            constants.DEFAULT_ROOT_VOLUME_SIZE,
-                                    },
-                                },
-                            ],
-                            instanceType: nodeGroupConfig[nodeType].instanceType,
-                            metadataOptions: {
-                                httpEndpoint: 'enabled',
-                                httpProtocolIpv6: 'enabled',
-                                httpPutResponseHopLimit: 1,
-                                httpTokens: ec2.LaunchTemplateHttpTokens.REQUIRED,
-                                instanceMetadataTags: 'enabled',
-                            },
-                        },
-                    }
-                );
-
                 const dataNodeGroup = this.eksCluster.addNodegroupCapacity(
                     `${nodeType}-node-group-${availabilityZone}`,
                     {
+                        instanceTypes: [
+                            new ec2.InstanceType(nodeGroupConfig[nodeType].instanceType),
+                        ],
                         minSize: minSizePerAz,
                         maxSize: nodeGroupConfig[nodeType].maxNodes
                             ? Math.round(
@@ -646,6 +548,9 @@ export class DruidEks extends DruidEksBase {
                                       availabilityZoneCnt
                               )
                             : undefined,
+                        diskSize:
+                            nodeGroupConfig[nodeType].rootVolumeSize ??
+                            constants.DEFAULT_ROOT_VOLUME_SIZE,
                         subnets: {
                             availabilityZones: [availabilityZone],
                         },
@@ -655,10 +560,6 @@ export class DruidEks extends DruidEksBase {
                                 serviceTier === constants.DEFAULT_TIER
                                     ? 'druid-data'
                                     : `druid-data-${serviceTier}`,
-                        },
-                        launchTemplateSpec: {
-                            id: launchTemplateEks.ref,
-                            version: launchTemplateEks.attrLatestVersionNumber,
                         },
                     }
                 );
@@ -676,13 +577,5 @@ export class DruidEks extends DruidEksBase {
             });
         }
         return dataNodeGroups;
-    }
-
-    private decideEBSDeviceName(druidEksBaseProperty: DruidEksBaseProps): string {
-        if (druidEksBaseProperty.customAmi) {
-            return '/dev/sda1';
-        } else {
-            return '/dev/xvda';
-        }
     }
 }
