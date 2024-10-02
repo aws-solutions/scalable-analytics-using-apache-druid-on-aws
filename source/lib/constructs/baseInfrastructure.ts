@@ -192,6 +192,7 @@ export class BaseInfrastructure extends Construct {
             destinationBucket: this.installationBucket,
             destinationKeyPrefix: ZOOKEEPER_IMAGE_FOLDER,
             vpc: this.vpc,
+            metadata: { "test": "test" },
           },
         );
       }
