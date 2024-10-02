@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 import * as cdk from 'aws-cdk-lib';
 import * as cw from 'aws-cdk-lib/aws-cloudwatch';
@@ -75,9 +86,7 @@ export class DruidEksStack extends DruidStack {
             this.createCanary(`https://${props.druidDomain}`);
         }
 
-        // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
-        // prettier-ignore
-        new OperationalMetricsCollection(this, 'metrics-collection', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new OperationalMetricsCollection(this, 'metrics-collection', {
             vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
@@ -110,9 +119,7 @@ export class DruidEksStack extends DruidStack {
         }
 
         // create monitoring dashboard
-        // prettier-ignore
-        new MonitoringDashboard(this, 'druid-ops-dashboard', { // NOSONAR (typescript:S1848) - cdk construct is used
-
+        new MonitoringDashboard(this, 'druid-ops-dashboard', {
             druidClusterName: druidEksProps.druidClusterParams.druidClusterName,
             computeWidgets: [
                 ...this.getEksWidgets(druidEksProps.druidClusterParams.druidClusterName),
@@ -120,8 +127,8 @@ export class DruidEksStack extends DruidStack {
             metadataDatabaseWidget: [...this.cluster.metadataDb.getCloudWatchWidgets()],
             deepStorageBucketName: this.baseInfra.deepStorageBucket.bucketName,
         });
-        // prettier-ignore
-        new DruidAlarms(this, 'alarms', { // NOSONAR (typescript:S1848) - cdk construct is used
+
+        new DruidAlarms(this, 'alarms', {
             druidClusterName: druidEksProps.druidClusterParams.druidClusterName,
             dbIdentifier: this.cluster.metadataDb.dbIdentifier,
             zookeeperNodeCount:

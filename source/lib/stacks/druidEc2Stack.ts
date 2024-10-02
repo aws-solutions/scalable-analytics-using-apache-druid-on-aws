@@ -1,6 +1,17 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as autoscaling from 'aws-cdk-lib/aws-autoscaling';
@@ -13,10 +24,6 @@ import * as metadataStoreUtils from '../utils/metadataStoreUtils';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as utils from '../utils/utils';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
-import {
-    addCfnGuardSuppression,
-    CfnGuardResourcePathRulesSuppressionAspect,
-} from '../constructs/cfnGuardHelper';
 
 import {
     ALB_ACCESS_LOGS_PREFIX,
@@ -125,18 +132,8 @@ export class DruidEc2Stack extends DruidStack {
             ec2.Port.tcp(8888),
             'Allow HTTP access to query nodes'
         );
-
-        addCfnGuardSuppression(securityGroup, [
-            {
-                id: 'SECURITY_GROUP_MISSING_EGRESS_RULE',
-                reason: 'Allowing to talk to Druid peers and download necessary dependencies from internet',
-            },
-        ]);
-
         if (this.webAcl) {
-            // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
-            // prettier-ignore
-            new wafv2.CfnWebACLAssociation(this, 'MyCDKWebACLAssociation', { // NOSONAR (typescript:S1848) - cdk construct is used
+            new wafv2.CfnWebACLAssociation(this, 'MyCDKWebACLAssociation', {
                 resourceArn: appLoadBalancer.loadBalancerArn,
                 webAclArn: this.webAcl.attrArn,
             });
@@ -161,8 +158,7 @@ export class DruidEc2Stack extends DruidStack {
             : `http://${appLoadBalancer.loadBalancerDnsName}`;
 
         if (this.hostedZone && props.route53Params) {
-            // prettier-ignore
-            new route53.ARecord(this, 'route53-alias-record', { // NOSONAR (typescript:S1848) - cdk construct is used
+            new route53.ARecord(this, 'route53-alias-record', {
                 zone: this.hostedZone,
                 target: route53.RecordTarget.fromAlias(
                     new LoadBalancerTarget(appLoadBalancer)
@@ -206,7 +202,7 @@ export class DruidEc2Stack extends DruidStack {
         dataAsgList.forEach((dataAsg) => {
             if (this.baseInfra.druidImageDeployment) {
                 dataAsg.autoScalingGroup.node.addDependency(
-                    this.baseInfra.druidImageDeployment
+                    this.baseInfra.druidImageDeployment!,
                 );
             }
             dataAsg.autoScalingGroup.node.addDependency(
@@ -231,8 +227,7 @@ export class DruidEc2Stack extends DruidStack {
             masterAsg.autoScalingGroup.node.addDependency(queryAsg.autoScalingGroup);
         });
 
-        // prettier-ignore
-        new OperationalMetricsCollection(this, 'metrics-collection', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new OperationalMetricsCollection(this, 'metrics-collection', {
             vpc: this.baseInfra.vpc,
             awsSolutionId: props.solutionId,
             awsSolutionVersion: props.solutionVersion,
@@ -243,8 +238,7 @@ export class DruidEc2Stack extends DruidStack {
         });
 
         if (props.clusterParams.druidRetentionRules) {
-            // prettier-ignore
-            new RetentionConfig(this, 'druid-retention-config', { // NOSONAR (typescript:S1848) - cdk construct is used
+            new RetentionConfig(this, 'druid-retention-config', {
                 vpc: this.baseInfra.vpc,
                 retentionRules: props.clusterParams.druidRetentionRules,
                 druidEndpoint: this.druidBaseUrl,
@@ -280,8 +274,7 @@ export class DruidEc2Stack extends DruidStack {
             props.removalPolicy
         );
 
-        // prettier-ignore
-        new cdk.CfnOutput(this, 'druid-base-url', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new cdk.CfnOutput(this, 'druid-base-url', {
             value: this.druidBaseUrl,
         });
     }
@@ -659,20 +652,6 @@ export class DruidEc2Stack extends DruidStack {
             );
         }
 
-        secGrp.node.children.forEach((ingressRule) => {
-            if (ingressRule instanceof ec2.CfnSecurityGroupIngress) {
-                ingressRule.addMetadata('guard', {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    SuppressedRules: [
-                        {
-                            id: 'SECURITY_GROUP_INGRESS_PORT_RANGE_RULE',
-                            reason: 'Allowing to talk to Druid peers and download necessary dependencies from internet',
-                        },
-                    ],
-                });
-            }
-        });
-
         addCfnNagSuppression(secGrp, [
             {
                 id: 'W40',
@@ -748,27 +727,6 @@ export class DruidEc2Stack extends DruidStack {
                 defaultAction: elb.ListenerAction.forward([targetGrp]),
             });
         }
-
-        cdk.Aspects.of(loadbalancer).add(
-            new CfnGuardResourcePathRulesSuppressionAspect({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'listener-http-id/Resource': [
-                    {
-                        id: 'ELBV2_LISTENER_SSL_POLICY_RULE',
-                        reason: 'HTTP listener is required to support SSL policy',
-                    },
-                ],
-
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'SecurityGroup/Resource': [
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        id: 'SECURITY_GROUP_MISSING_EGRESS_RULE',
-                        reason: 'Allows outbound traffic to anywhere for ALB',
-                    },
-                ],
-            })
-        );
 
         cdk.Aspects.of(loadbalancer).add(
             new CfnNagResourcePathRulesSuppressionAspect({
@@ -1053,8 +1011,7 @@ export class DruidEc2Stack extends DruidStack {
             );
         });
 
-        // prettier-ignore
-        new MonitoringDashboard(this, 'druid-ops-dashboard', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new MonitoringDashboard(this, 'druid-ops-dashboard', {
             druidClusterName,
             albName: appLoadBalancer.loadBalancerFullName,
             computeWidgets,
@@ -1080,8 +1037,7 @@ export class DruidEc2Stack extends DruidStack {
             );
         });
 
-        // prettier-ignore
-        new DruidAlarms(this, 'alarms', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new DruidAlarms(this, 'alarms', {
             druidClusterName,
             loadBalancerFullName: appLoadBalancer.loadBalancerFullName,
             targetGroupName: queryTargetGroup.targetGroupFullName,

@@ -1,11 +1,22 @@
 /* 
- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License").
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 import * as as from 'aws-cdk-lib/aws-autoscaling';
 import * as cdk from 'aws-cdk-lib';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as utils from '../utils/utils';
 
 import {
@@ -26,9 +37,9 @@ import { BaseInfrastructure } from './baseInfrastructure';
 import { Construct } from 'constructs';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { MetadataStore } from './metadataStore';
-import { SSMAutomation } from './ssmAutomation';
 import { ZooKeeper } from './zookeeper';
 import { readFileSync } from 'fs';
+import { SSMAutomation } from './ssmAutomation';
 
 export interface DruidAutoScalingGroupProps {
     readonly asgContext: DruidAutoScalingGroupContext;
@@ -133,17 +144,14 @@ export class DruidAutoScalingGroup extends Construct {
         nodeTierName: string,
         gracefulTerminationParam: ssm.IStringParameter
     ): void {
-        // using prettier-ignore prevents prettier from reformatting the nosonar line to the next line
-        // prettier-ignore
-        new as.CfnLifecycleHook(this, 'lifecycle-termination', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new as.CfnLifecycleHook(this, 'lifecycle-termination', {
             autoScalingGroupName: asg.autoScalingGroupName,
             lifecycleTransition: as.LifecycleTransition.INSTANCE_TERMINATING,
             defaultResult: as.DefaultResult.CONTINUE,
             heartbeatTimeout: INSTANCE_TERMINATION_TIMEOUT,
         });
 
-        // prettier-ignore
-        new SSMAutomation(this, 'ssm-automation', { // NOSONAR (typescript:S1848) - cdk construct is used
+        new SSMAutomation(this, 'ssm-automation', {
             nodeType,
             serviceName: `${asgContext.clusterParams.druidClusterName}_${nodeTierName}`,
             secretArn:

@@ -548,7 +548,7 @@ spec:
         httpGet:
           path: /status/health
           port: 8083
-      startUpProbe:
+      startUpProbes:
         initialDelaySeconds: {{initial_probe_delay_seconds}}
         httpGet:
           path: /status/health

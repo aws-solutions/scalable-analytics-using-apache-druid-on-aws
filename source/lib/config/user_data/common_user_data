@@ -70,7 +70,7 @@ echo " >>druid>> starting CloudWatch agent $(date)"
 sed -i \
     -e "s|<DRUID_COMPONENT>|{{DRUID_COMPONENT}}|g" \
     -e "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" \
-    -e "s|<AWS_REGION>|AWS_REGION|g" \
+    -e "s|<AWS_REGION>|$AWS_REGION|g" \
     -e "s|<FIPS_ENDPOINT>|$($AWS_USE_FIPS_ENDPOINT && echo -fips)|g" \
     $DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json

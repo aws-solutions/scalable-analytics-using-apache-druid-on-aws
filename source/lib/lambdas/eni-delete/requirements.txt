@@ -1,3 +1,0 @@
-boto3==1.33.13
-botocore==1.33.13
-crhelper
