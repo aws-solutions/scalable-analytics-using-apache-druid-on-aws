@@ -90,7 +90,7 @@ download_and_verify_file()
 
 download_druid() 
 {
-    download_url="https://archive.apache.org/dist/druid/${druid_version}/apache-druid-${druid_version}-bin.tar.gz"
+    download_url="https://dlcdn.apache.org/druid/${druid_version}/apache-druid-${druid_version}-bin.tar.gz"
     download_and_verify_file "$druid_version" "$download_url" "./druid-bin" "apache-druid"
 }
 
@@ -98,7 +98,7 @@ download_zookeeper()
 {
     local zookeeper_version=$(echo "$cdk_context"  | grep "zookeeperVersion" | awk '/zookeeperVersion/{print $NF}' | tr -d '"' | tr -d ',')
     zookeeper_version=${zookeeper_version:-3.8.4}
-    download_url="https://archive.apache.org/dist/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz"
+    download_url="https://dlcdn.apache.org/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz"
     download_and_verify_file "$zookeeper_version" "$download_url" "./zookeeper-bin" "apache-zookeeper"
 }
 

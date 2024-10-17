@@ -125,13 +125,13 @@ The solution deploys the following components that work together to provide a pr
 
 -   The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
 -   The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
--   [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
+-   [Nodejs](https://docs.npmjs.com/getting-started) version 20 or newer.
 -   [Python](https://www.python.org/) version 3.12 or newer.
 -   [Git](https://git-scm.com/) command line
 -   Java Runtime
-    -   The solution requires a Java 8 Runtime. We strongly recommend using [Amazon Corretto 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html). Alternatively, you can also use other OpenJDKs such as [Eclipse Temurin](https://adoptium.net/en-GB/temurin/releases/?version=8).
+    -   The solution requires a Java 17 Runtime. We strongly recommend using [Amazon Corretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html). Alternatively, you can also use other OpenJDKs such as [Eclipse Temurin](https://adoptium.net/en-GB/temurin/releases/?version=17).
 -   [Maven](https://maven.apache.org/install.html.) (>=3.5.2)
-    -    We recommend configuring Maven to use an OpenJDK8 compatible JAVA version, such as Amazon Corretto 8.
+    -    We recommend configuring Maven to use an OpenJDK17 compatible JAVA version, such as Amazon Corretto 17.
 -   [Docker](https://docs.docker.com/get-docker/)
 -   [Curl](https://curl.se/download.html)
 
@@ -149,16 +149,16 @@ Use the `source/cdk.json` file to configure the solution. It is recommended to c
 
 **AMI configuration (optional)**
 
-The `EC2` hosting option by default provisions EC2 instances with Amazon Linux 2. This can be overriden by specifying the `customAmi` object in the `cdk.json` file. This object should provide the AMI name and owners' account IDs or alias that `cdk` would use to perform an AMI lookup. Depending on the instance types utilized in the cluster, please supply the corresponding AMI for "arm64" (Graviton instances) or "amd64" (x86-based instance types). The solution has been tested with Amazon Linux, Ubuntu 20.04 LTS and Ubuntu 22.04 LTS.
+The `EC2` hosting option by default provisions EC2 instances with Amazon Linux 2. This can be overriden by specifying the `customAmi` object in the `cdk.json` file. This object should provide the AMI name and owners' account IDs or alias that `cdk` would use to perform an AMI lookup. Depending on the instance types utilized in the cluster, please supply the corresponding AMI for "arm64" (Graviton instances) or "amd64" (x86-based instance types). The solution has been tested with Amazon Linux 2 and Ubuntu 22.04 LTS.
 
 ```
 "customAmi": {
     "arm64": {
-        "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-arm64-server*",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-arm64-server*",
         "owners": ["amazon"]
     },
     "amd64": {
-        "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server*",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*",
         "owners": ["amazon"]
     }
 },

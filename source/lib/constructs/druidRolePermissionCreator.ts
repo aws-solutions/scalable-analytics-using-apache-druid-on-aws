@@ -33,7 +33,7 @@ export class DruidRolePermissionCreator extends Construct {
             vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
             entry: path.join(__dirname, '../lambdas/roleCreationLambda.ts'),
             handler: 'onEventHandler',
-            runtime: lambda.Runtime.NODEJS_18_X,
+            runtime: lambda.Runtime.NODEJS_20_X,
             environment: {
                 /* eslint-disable @typescript-eslint/naming-convention */
                 DRUID_ENDPOINT: props.druidEndpoint,
