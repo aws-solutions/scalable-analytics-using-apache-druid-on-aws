@@ -54,6 +54,7 @@ This software includes third party software subject to the following copyrights:
 @aws-sdk/xml-builder under the Apache-2.0 license
 @babel/code-frame under the MIT license
 @babel/compat-data under the MIT license
+@babel/core under the MIT license.
 @babel/generator under the MIT license
 @babel/helper-compilation-targets under the MIT license
 @babel/helper-environment-visitor under the MIT license
@@ -86,6 +87,7 @@ This software includes third party software subject to the following copyrights:
 @babel/plugin-syntax-typescript under the MIT license
 @babel/template under the MIT license
 @babel/traverse under the MIT license
+@babel/types under the MIT license.
 @balena/dockerignore under the Apache-2.0 license
 @bcoe/v8-coverage under the MIT license
 @cspotcode/source-map-support under the MIT license
@@ -100,6 +102,7 @@ This software includes third party software subject to the following copyrights:
 @istanbuljs/load-nyc-config under the ISC license
 @istanbuljs/schema under the MIT license
 @jest/console under the MIT license
+@jest/core under the MIT license.
 @jest/environment under the MIT license
 @jest/expect under the MIT license
 @jest/expect-utils under the MIT license
@@ -111,6 +114,7 @@ This software includes third party software subject to the following copyrights:
 @jest/test-result under the MIT license
 @jest/test-sequencer under the MIT license
 @jest/transform under the MIT license
+@jest/types under the MIT license.
 @jridgewell/gen-mapping under the MIT license
 @jridgewell/resolve-uri under the MIT license
 @jridgewell/set-array under the MIT license
@@ -122,10 +126,12 @@ This software includes third party software subject to the following copyrights:
 @pkgr/utils under the MIT license
 @sinclair/typebox under the MIT license
 @sinonjs/commons under the BSD-3-Clause license
+@sinonjs/fake-timers under the BSD-3-Clause license.
 @sinonjs/samsam under the BSD-3-Clause license
 @sinonjs/text-encoding under the (Unlicense OR Apache-2.0) license
 @smithy/abort-controller under the Apache-2.0 license
 @smithy/config-resolver under the Apache-2.0 license
+@smithy/core under the Apache-2.0 license.
 @smithy/credential-provider-imds under the Apache-2.0 license
 @smithy/eventstream-codec under the Apache-2.0 license
 @smithy/fetch-http-handler under the Apache-2.0 license
@@ -147,6 +153,7 @@ This software includes third party software subject to the following copyrights:
 @smithy/shared-ini-file-loader under the Apache-2.0 license
 @smithy/signature-v4 under the Apache-2.0 license
 @smithy/smithy-client under the Apache-2.0 license
+@smithy/types under the Apache-2.0 license.
 @smithy/url-parser under the Apache-2.0 license
 @smithy/util-base64 under the Apache-2.0 license
 @smithy/util-body-length-browser under the Apache-2.0 license
@@ -155,6 +162,7 @@ This software includes third party software subject to the following copyrights:
 @smithy/util-config-provider under the Apache-2.0 license
 @smithy/util-defaults-mode-browser under the Apache-2.0 license
 @smithy/util-defaults-mode-node under the Apache-2.0 license
+@smithy/util-endpoints under the Apache-2.0 license.
 @smithy/util-hex-encoding under the Apache-2.0 license
 @smithy/util-middleware under the Apache-2.0 license
 @smithy/util-retry under the Apache-2.0 license
@@ -190,9 +198,12 @@ This software includes third party software subject to the following copyrights:
 @types/yargs under the MIT license
 @types/yargs-parser under the MIT license
 @typescript-eslint/eslint-plugin under the MIT license
+@typescript-eslint/parser under the BSD-2-Clause license.
 @typescript-eslint/scope-manager under the MIT license
 @typescript-eslint/type-utils under the MIT license
+@typescript-eslint/types under the MIT license.
 @typescript-eslint/typescript-estree under the BSD-2-Clause license
+@typescript-eslint/utils under the MIT license.
 @typescript-eslint/visitor-keys under the MIT license
 acorn under the MIT license
 acorn-jsx under the MIT license
@@ -298,9 +309,11 @@ com.nimbusds/nimbus-jose-jwt under the Apache-2.0 license
 com.nimbusds/oauth2-oidc-sdk under the Apache-2.0 license
 com.ning/compress-lzf under the Apache-2.0 license
 com.opencsv/opencsv under the Apache-2.0 license
-com.squareup.okhttp/okhttp under the Apache-2.0 license
 com.squareup.okhttp3/mockwebserver under the Apache-2.0 license
+com.squareup.okhttp3/okhttp under the Apache-2.0 license.
+com.squareup.okhttp/okhttp under the Apache-2.0 license
 com.squareup.okio/okio under the Apache-2.0 license
+com.squareup.okio/okio-jvm under the Apache-2.0 license.
 com.sun.activation/javax.activation under the (CDDL-1.0 OR GPL-2.0-with-classpath-exception) license
 com.sun.jersey.contribs/jersey-guice under the CDDL-1.1 license
 com.sun.jersey.contribs/jersey-guice under the GPL-2.0-with-classpath-exception license
@@ -364,6 +377,7 @@ estraverse under the BSD-2-Clause license
 esutils under the BSD-2-Clause license
 execa under the MIT license
 exit under the MIT license
+expect under the MIT license.
 exponential-backoff under the Apache-2.0 license
 fast-deep-equal under the MIT license
 fast-diff under the Apache-2.0 license
@@ -391,7 +405,9 @@ get-package-type under the MIT license
 get-stream under the MIT license
 glob under the ISC license
 glob-parent under the ISC license
+globals under the MIT license.
 globby under the MIT license
+graceful-fs under the ISC license.
 graphemer under the MIT license
 has under the MIT license
 has-flag under the MIT license
@@ -444,8 +460,11 @@ is-stream under the MIT license
 is-wsl under the MIT license
 isarray under the MIT license
 isexe under the ISC license
+istanbul-lib-coverage under the BSD-3-Clause license.
 istanbul-lib-instrument under the BSD-3-Clause license
+istanbul-lib-report under the BSD-3-Clause license.
 istanbul-lib-source-maps under the BSD-3-Clause license
+istanbul-reports under the BSD-3-Clause license.
 it.unimi.dsi/fastutil under the Apache-2.0 license
 it.unimi.dsi/fastutil-core under the Apache-2.0 license
 it.unimi.dsi/fastutil-extra under the Apache-2.0 license
@@ -462,6 +481,7 @@ javax.validation/validation-api under the Apache-2.0 license
 javax.ws.rs/jsr311-api under the CDDL-1.0 license
 javax.xml.bind/jaxb-api under the CDDL-1.1 license
 javax.xml.bind/jaxb-api under the GPL-2.0-with-classpath-exception license
+jest under the MIT license.
 jest-changed-files under the MIT license
 jest-circus under the MIT license
 jest-cli under the MIT license
@@ -491,11 +511,12 @@ jest-worker under the MIT license
 Jinja2 under the BSD-3-Clause license
 joda-time/joda-time under the Apache-2.0 license
 js-tokens under the MIT license
+js-yaml under the MIT license.
 jsesc under the MIT license
+json5 under the MIT license
 json-parse-even-better-errors under the MIT license
 json-schema-traverse under the MIT license
 json-stable-stringify-without-jsonify under the MIT license
-json5 under the MIT license
 jsonfile under the MIT license
 jsonschema under the MIT license
 junit/junit under the EPL-1.0 license
@@ -515,8 +536,8 @@ make-dir under the MIT license
 make-error under the ISC license
 makeerror under the BSD-3-Clause license
 MarkupSafe under the BSD-3-Clause license
-merge-stream under the MIT license
 merge2 under the MIT license
+merge-stream under the MIT license
 micromatch under the MIT license
 mime-db under the MIT license
 mime-types under the MIT license
@@ -527,6 +548,7 @@ mock under the 0BSD license
 moment under the MIT license
 moto under the Apache-2.0 license
 ms under the MIT license
+mustache under the MIT license.
 natural-compare under the MIT license
 natural-compare-lite under the MIT license
 net.bytebuddy/byte-buddy under the Apache-2.0 license
@@ -539,6 +561,7 @@ net.minidev/accessors-smart under the Apache-2.0 license
 net.minidev/json-smart under the Apache-2.0 license
 net.thisptr/jackson-jq under the Apache-2.0 license
 nise under the BSD-3-Clause license
+node-forge under the BSD-3-Clause license.
 node-int64 under the MIT license
 node-releases under the MIT license
 normalize-path under the MIT license
@@ -627,6 +650,7 @@ org.glassfish/jakarta.el under the GPL-2.0-with-classpath-exception license
 org.glassfish/javax.el under the (CDDL-1.0 OR GPL-2.0-with-classpath-exception) license
 org.hamcrest/hamcrest-core under the BSD-3-Clause license
 org.hibernate.validator/hibernate-validator under the Apache-2.0 license
+org.hibernate/hibernate-validator under the Apache-2.0 license.
 org.hyperic/sigar under the Apache-2.0 license
 org.jboss.logging/jboss-logging under the Apache-2.0 license
 org.jdbi/jdbi under the Apache-2.0 license
@@ -674,6 +698,7 @@ pirates under the MIT license
 pkg-dir under the MIT license
 pluggy under the MIT license
 prelude-ls under the MIT license
+prettier under the MIT license.
 prettier-linter-helpers under the MIT license
 pretty-format under the MIT license
 prompts under the MIT license
@@ -704,15 +729,20 @@ rimraf under the ISC license
 run-applescript under the MIT license
 run-parallel under the MIT license
 s3transfer under the Apache-2.0 license
+semver under the ISC license.
 setuptools under the MIT license
 shebang-command under the MIT license
 shebang-regex under the MIT license
 signal-exit under the ISC license
+sinon under the BSD-3-Clause license.
 sisteransi under the MIT license
 slash under the MIT license
 slice-ansi under the MIT license
 software.amazon.ion/ion-java under the Apache-2.0 license
+source-map under the BSD-3-Clause license.
+source-map-support under the MIT license.
 sprintf-js under the BSD-3-Clause license
+stack-utils under the MIT license.
 string-length under the MIT license
 string-width under the MIT license
 strip-ansi under the MIT license
@@ -745,6 +775,7 @@ uri-js under the BSD-2-Clause license
 urlgrabber under the GNU Lesser General Public License v2 or later (LGPLv2+) license
 urlgrabber under the LGPL-2.0-or-later license
 urllib3 under the MIT license
+uuid under the MIT license.
 v8-compile-cache-lib under the MIT license
 v8-to-istanbul under the ISC license
 walker under the Apache-2.0 license
@@ -759,6 +790,8 @@ xmltodict under the MIT license
 y18n under the ISC license
 yallist under the ISC license
 yaml under the ISC license
+yargs under the MIT license.
+yargs-parser under the ISC license.
 yn under the MIT license
 yocto-queue under the MIT license
 

@@ -119,7 +119,7 @@ export class AppRegistry extends Construct implements cdk.IAspect {
             description:
                 'Lambda for checking the state of AppRegistry Application Resource Group state',
             initialPolicy: [lambdaPolicyStatement],
-            runtime: lambda.Runtime.NODEJS_18_X,
+            runtime: lambda.Runtime.NODEJS_20_X,
         });
 
         const provider = new cr.Provider(this, 'provider', {

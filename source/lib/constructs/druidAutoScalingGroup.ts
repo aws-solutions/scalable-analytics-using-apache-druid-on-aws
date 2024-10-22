@@ -176,8 +176,9 @@ export class DruidAutoScalingGroup extends Construct {
             historicalInstanceConfig.instanceType
         );
 
+        const nodeTierName = utils.getNodeTierName(props.nodeType, props.serviceTier);
         const instanceTypeInfo = utils.getInstanceTypeInfo(
-            ec2Config[props.nodeType]?.instanceType ?? ''
+            ec2Config[nodeTierName]?.instanceType ?? ''
         );
 
         const templateVariables: Record<string, string> = {
@@ -197,7 +198,7 @@ export class DruidAutoScalingGroup extends Construct {
             ),
             DRUID_VERSION: asgContext.clusterParams.druidVersion,
             DRUID_EXTENSIONS: JSON.stringify(asgContext.clusterParams.druidExtensions),
-            DRUID_COMPONENT: utils.getNodeTierName(props.nodeType, props.serviceTier),
+            DRUID_COMPONENT: ec2Config[nodeTierName]?.instanceType ?? '',
             REGION: cdk.Aws.REGION,
             STACK_NAME: cdk.Aws.STACK_NAME,
             RESOURCE_NAME: (asg.node.defaultChild as as.CfnAutoScalingGroup).logicalId,

@@ -42,7 +42,7 @@ export class OperationalMetricsCollection extends Construct {
             entry: path.join(__dirname, './operationMetricCollectionLambda.ts'),
             handler: 'handler',
             description: 'Lambda for Operational Metrics collection',
-            runtime: lambda.Runtime.NODEJS_18_X,
+            runtime: lambda.Runtime.NODEJS_20_X,
         });
 
         addCfnNagSuppression(fn, [
