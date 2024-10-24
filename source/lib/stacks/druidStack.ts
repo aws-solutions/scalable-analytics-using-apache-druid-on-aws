@@ -154,7 +154,7 @@ export abstract class DruidStack extends cdk.Stack {
         this.createEniDeleteLambda(canarySecurityGroup);
         return new synthetics.Canary(this, 'canary', {
             runtime: new synthetics.Runtime(
-                'syn-nodejs-puppeteer-5.2',
+                'syn-nodejs-puppeteer-9.0',
                 synthetics.RuntimeFamily.NODEJS
             ),
             vpc: this.baseInfra.vpc,

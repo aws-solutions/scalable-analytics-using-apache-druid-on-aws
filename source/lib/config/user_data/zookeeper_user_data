@@ -8,13 +8,21 @@ useradd -m -U ${USER_NAME}
 if [[ ! -z $YUM_CMD ]]; then
     echo " >>zookeeper>> installing yum dependencies $(date)"
     yum update -y && \
-        yum install -y java-11-amazon-corretto nc jq amazon-cloudwatch-agent && \
-        amazon-linux-extras install python3.8
-    PYTHON=python3.8
+        yum install -y java-17-amazon-corretto nc jq amazon-cloudwatch-agent && \
+        yum groupinstall "Development Tools" -y && \
+        yum erase openssl-devel -y && \
+        sudo yum install openssl11 openssl11-devel  libffi-devel bzip2-devel wget -y && \
+        wget https://www.python.org/ftp/python/3.10.15/Python-3.10.15.tgz && \
+        tar -xf Python-3.10.15.tgz && \
+        cd Python-3.10.15/ && \
+        ./configure --enable-optimizations && \
+        make -j $(nproc) && \
+        sudo make altinstall
+    PYTHON=python3.10
 elif [[ ! -z $APT_CMD ]]; then
     echo " >>zookeeper>> installing apt-get dependencies $(date)"
     apt-get update
-    while apt-get install openjdk-11-jdk jq python3-pip --yes; [[ $? -ne 0 ]];
+    while apt-get install openjdk-17-jdk jq python3-pip --yes; [[ $? -ne 0 ]];
     do
         echo " >>zookeeper>> waiting for apt lock. Will retry in 5 seconds. $(date)"
         sleep 5
@@ -33,8 +41,14 @@ export PATH=$PATH:/usr/local/bin:/opt/aws/bin
 echo " >>zookeeper>> installing python dependencies $(date)"
 $PYTHON -m pip install -U pip
 $PYTHON -m pip install --no-input boto3 botocore supervisor awscli
-chmod +x /usr/local/bin/aws
-chmod +x /usr/local/bin/supervisord
+if [[ ! -z $YUM_CMD ]]; then
+        chmod +x /usr/bin/aws
+        sudo easy_install supervisor
+        chmod +x /usr/bin/supervisord
+elif [[ ! -z $APT_CMD ]]; then
+        chmod +x /usr/local/bin/aws
+        chmod +x /usr/local/bin/supervisord
+fi
 
 export AWS_REGION={{REGION}}
 export AWS_DEFAULT_REGION={{REGION}}

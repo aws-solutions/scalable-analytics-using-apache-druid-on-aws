@@ -30,7 +30,7 @@ export class LoadBalancerControllerCleanup extends Construct {
             entry: path.join(__dirname, './loadBalancerControllerCleanupLambda.ts'),
             handler: 'handler',
             description: 'Clean up dangling ALBs and Route53 on EKS cluster teardown',
-            runtime: lambda.Runtime.NODEJS_18_X,
+            runtime: lambda.Runtime.NODEJS_20_X,
             initialPolicy: [
                 new iam.PolicyStatement({
                     effect: iam.Effect.ALLOW,

@@ -45,7 +45,7 @@ export class InternalCertificateAuthority extends Construct {
             },
             entry: path.join(__dirname, '../lambdas/certificateGenerator.ts'),
             handler: 'onEventHandler',
-            runtime: lambda.Runtime.NODEJS_LATEST,
+            runtime: lambda.Runtime.NODEJS_20_X,
             timeout: cdk.Duration.minutes(15),
             description: 'Generates TLS certificates for Druid internal components',
         });
