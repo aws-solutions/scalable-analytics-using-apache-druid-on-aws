@@ -26,34 +26,14 @@
 
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <JsonTemplateLayout>
-        <EventTemplate>
-          {
-          "timestamp": "${json:timestamp:ISO8601}",
-          "level": "${json:level}",
-          "thread": "${json:thread:name}",
-          "loggerName": "${json:logger:name}",
-          "message": "${json:message}"
-          }
-        </EventTemplate>
-      </JsonTemplateLayout>
+      <JsonLayout complete="false" eventEol="true" />
     </Console>
 
     <!-- Rolling Files-->
     <RollingRandomAccessFile name="FileAppender"
                              fileName="${sys:druid.log.path}/${sys:druid.node.type}.log"
                              filePattern="${sys:druid.log.path}/${sys:druid.node.type}.%d{yyyyMMdd}.log">
-      <JsonTemplateLayout>
-        <EventTemplate>
-          {
-          "timestamp": "${json:timestamp:ISO8601}",
-          "level": "${json:level}",
-          "thread": "${json:thread:name}",
-          "loggerName": "${json:logger:name}",
-          "message": "${json:message}"
-          }
-        </EventTemplate>
-      </JsonTemplateLayout>
+      <JsonLayout complete="false" eventEol="true" />
       <Policies>
         <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
       </Policies>
