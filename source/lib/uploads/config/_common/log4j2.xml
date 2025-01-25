@@ -26,7 +26,7 @@
 
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <JsonLayout complete="false"
+      <JsonLayout complete="true"
               compact="true"
               eventEol="false"
               objectMessageAsJsonObject="true"/>
@@ -36,7 +36,7 @@
     <RollingRandomAccessFile name="FileAppender"
                              fileName="${sys:druid.log.path}/${sys:druid.node.type}.log"
                              filePattern="${sys:druid.log.path}/${sys:druid.node.type}.%d{yyyyMMdd}.log">
-      <JsonLayout complete="false"
+      <JsonLayout complete="true"
               compact="true"
               eventEol="false"
               objectMessageAsJsonObject="true"/>
