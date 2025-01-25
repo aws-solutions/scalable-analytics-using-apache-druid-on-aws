@@ -27,7 +27,7 @@
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>
-        <pattern>{"level":"%p", "message":d{ISO8601} [%t] %c - %m%n}</pattern>
+        <pattern>{"level":"%p","message":d{ISO8601} [%t] %c - %m%n}</pattern>
       </PatternLayout>
     </Console>
 
@@ -36,7 +36,7 @@
                              fileName="${sys:druid.log.path}/${sys:druid.node.type}.log"
                              filePattern="${sys:druid.log.path}/${sys:druid.node.type}.%d{yyyyMMdd}.log">
       <PatternLayout>
-        <pattern>{"level":"%p", "message":d{ISO8601} [%t] %c - %m%n}</pattern>
+        <pattern>{"level":"%p","message":d{ISO8601} [%t] %c - %m%n}</pattern>
       </PatternLayout>
       <Policies>
         <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
