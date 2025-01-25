@@ -26,23 +26,39 @@
 
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout>
-        <pattern>{"level":"%p","message":d{ISO8601} [%t] %c - %m%n}</pattern>
-      </PatternLayout>
+      <JsonTemplateLayout>
+        <EventTemplate>
+          {
+          "timestamp": "${json:timestamp:ISO8601}",
+          "level": "${json:level}",
+          "thread": "${json:thread:name}",
+          "loggerName": "${json:logger:name}",
+          "message": "${json:message}"
+          }
+        </EventTemplate>
+      </JsonTemplateLayout>
     </Console>
 
     <!-- Rolling Files-->
     <RollingRandomAccessFile name="FileAppender"
                              fileName="${sys:druid.log.path}/${sys:druid.node.type}.log"
                              filePattern="${sys:druid.log.path}/${sys:druid.node.type}.%d{yyyyMMdd}.log">
-      <PatternLayout>
-        <pattern>{"level":"%p","message":d{ISO8601} [%t] %c - %m%n}</pattern>
-      </PatternLayout>
+      <JsonTemplateLayout>
+        <EventTemplate>
+          {
+          "timestamp": "${json:timestamp:ISO8601}",
+          "level": "${json:level}",
+          "thread": "${json:thread:name}",
+          "loggerName": "${json:logger:name}",
+          "message": "${json:message}"
+          }
+        </EventTemplate>
+      </JsonTemplateLayout>
       <Policies>
         <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
       </Policies>
       <DefaultRolloverStrategy>
-        <Delete basePath="${sys:druid.log.path}/" maxDepth="1">
+        <Delete basePath="${sys:dr  uid.log.path}/" maxDepth="1">
           <IfFileName glob="*.log" />
           <IfLastModified age="7d" />
         </Delete>
