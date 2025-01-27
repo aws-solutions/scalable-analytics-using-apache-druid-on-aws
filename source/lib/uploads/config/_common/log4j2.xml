@@ -26,20 +26,14 @@
 
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <JsonLayout complete="true"
-              compact="true"
-              eventEol="false"
-              objectMessageAsJsonObject="true"/>
+      <JsonLayout compact="true" eventEol="true"/>
     </Console>
 
     <!-- Rolling Files-->
     <RollingRandomAccessFile name="FileAppender"
                              fileName="${sys:druid.log.path}/${sys:druid.node.type}.log"
                              filePattern="${sys:druid.log.path}/${sys:druid.node.type}.%d{yyyyMMdd}.log">
-      <JsonLayout complete="true"
-              compact="true"
-              eventEol="false"
-              objectMessageAsJsonObject="true"/>
+      <JsonLayout compact="true" eventEol="true"/>
       <Policies>
         <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
       </Policies>
