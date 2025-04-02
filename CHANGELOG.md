@@ -5,9 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2024-04-02
+
+### Security
+
+- Upgrade Druid to v31.0.0
+- Upgrade EC2 AMI to AL2023
+- Patch cross-spawn, esbuild and aws-cdk-lib vulnerabilities
+
+### Fixed
+
+- Fix broken CloudWatch agent integration
+
+## [1.0.5] - 2024-10-24
+
+### Security
+
+- Upgrade to Java 17 and NodeJS 20
+- Patched Apache Commons IO vulnerability
+- Change EC2 userdata script to install Python 3.10
+
+### Fixed
+
+- Fix Data Node Splitting in Tiers [#33](https://github.com/aws-solutions/scalable-analytics-using-apache-druid-on-aws/pull/33)
+
+### Added
+
+- Apache curl alternative url for Druid and Zookeeper for installation in case archive.apache is unavailable
+
+## [1.0.4] - 2024-09-18
+
+### Security
+
+- Patch versions of path-to-regexp, aws-cdk and micromatch
+
+## [1.0.3] - 2024-08-19
+
+### Security
+
+- Upgrade Zookeeper to the latest patch version of v3.8.4
+- Upgrade Druid to v30.0.0
+- Upgrade Druid-Operator to be v1.2.3
+- EC2 instances now require IMDSv2
+- Patch axios vulnerability
+
+### Fixed
+
+- Empty S3 buckets during teardown if needed
+- Gracefully delete CloudWatch Synthetics Canary network interfaces
+
 ## [1.0.2] - 2024-08-07
 
 ### Security
+
 - Patched fast-xml-parser vulnerability
 
 ## [1.0.1] - 2024-07-01

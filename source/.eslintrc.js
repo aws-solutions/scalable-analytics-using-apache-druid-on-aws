@@ -30,7 +30,7 @@ module.exports = {
         '@typescript-eslint/explicit-member-accessibility': ['warn'],
         '@typescript-eslint/naming-convention': [
             'error',
-            { selector: 'variableLike', format: ['camelCase'] },
+            { selector: 'variableLike', format: ['camelCase'], leadingUnderscore: 'allow' },
             { selector: 'memberLike', format: ['camelCase'] },
             { selector: 'typeLike', format: ['PascalCase'] },
         ],

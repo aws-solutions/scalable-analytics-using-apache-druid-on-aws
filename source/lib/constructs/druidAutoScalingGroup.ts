@@ -1,17 +1,6 @@
 /* 
-  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-  
-  Licensed under the Apache License, Version 2.0 (the "License").
-  You may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-      http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
 */
 import * as as from 'aws-cdk-lib/aws-autoscaling';
 import * as cdk from 'aws-cdk-lib';
@@ -187,8 +176,9 @@ export class DruidAutoScalingGroup extends Construct {
             historicalInstanceConfig.instanceType
         );
 
+        const nodeTierName = utils.getNodeTierName(props.nodeType, props.serviceTier);
         const instanceTypeInfo = utils.getInstanceTypeInfo(
-            ec2Config[props.nodeType]?.instanceType ?? ''
+            ec2Config[nodeTierName]?.instanceType ?? ''
         );
 
         const templateVariables: Record<string, string> = {
@@ -208,7 +198,7 @@ export class DruidAutoScalingGroup extends Construct {
             ),
             DRUID_VERSION: asgContext.clusterParams.druidVersion,
             DRUID_EXTENSIONS: JSON.stringify(asgContext.clusterParams.druidExtensions),
-            DRUID_COMPONENT: utils.getNodeTierName(props.nodeType, props.serviceTier),
+            DRUID_COMPONENT: ec2Config[nodeTierName]?.instanceType ?? '',
             REGION: cdk.Aws.REGION,
             STACK_NAME: cdk.Aws.STACK_NAME,
             RESOURCE_NAME: (asg.node.defaultChild as as.CfnAutoScalingGroup).logicalId,

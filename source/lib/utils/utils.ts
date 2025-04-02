@@ -1,17 +1,6 @@
 /* 
-  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-  
-  Licensed under the Apache License, Version 2.0 (the "License").
-  You may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-      http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
 */
 import * as cronParser from 'cron-parser';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
@@ -136,7 +125,7 @@ export function createLaunchTemplate(
                 ? new ec2.LookupMachineImage({ ...customAmi.arm64! })
                 : new ec2.LookupMachineImage({ ...customAmi.amd64! });
     } else {
-        machineImage = ec2.MachineImage.latestAmazonLinux2({
+        machineImage = ec2.MachineImage.latestAmazonLinux2023({
             cpuType: instanceTypeInfo.arch,
         });
     }
@@ -148,7 +137,10 @@ export function createLaunchTemplate(
         role: ec2IamRole,
         securityGroup,
         blockDevices,
-        httpPutResponseHopLimit: 2,
+        httpEndpoint: true,
+        httpProtocolIpv6: true,
+        httpPutResponseHopLimit: 1,
+        httpTokens: ec2.LaunchTemplateHttpTokens.REQUIRED,
         instanceMetadataTags: true,
         requireImdsv2: true,
         userData: ec2.UserData.forLinux(),

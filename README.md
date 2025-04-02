@@ -23,7 +23,7 @@
 
 ## Scalable Analytics using Apache Druid on AWS
 
-Scalable analytics using Apache Druid on AWS is a solution offered by AWS that enables customers to quickly and efficiently deploy, operate and manage a cost-effective, highly available, resilient, and fault tolerant hosting environment for Apache Druid analytics databases on AWS.
+Scalable analytics using Apache Druid on AWS is a solution offered by AWS that enables customers to quickly and efficiently deploy, operate and manage a cost-effective, highly available, resilient, and fault tolerant hosting environment for Apache Druid analytics databases on AWS. 
 
 ## Licence
 
@@ -84,6 +84,7 @@ For the architecture of EKS stack, please refer to the diagram located at `sourc
 ### Solution components
 
 The solution deploys the following components that work together to provide a production-ready Druid cluster:
+
 -   **Web application firewall**: AWS WAF is utilized to safeguard Druid web console and Druid API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources. It is automatically activated when the `internetFacing` parameter is set to true.
 
 -   **Application load balancer**: A load balancer serves as the single point of contact for clients. The load balancer distributes incoming application traffic across multiple query servers in multiple Availability Zones.
@@ -125,12 +126,13 @@ The solution deploys the following components that work together to provide a pr
 
 -   The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
 -   The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
--   [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
+-   [Nodejs](https://docs.npmjs.com/getting-started) version 20 or newer.
+-   [Python](https://www.python.org/) version 3.12 or newer.
 -   [Git](https://git-scm.com/) command line
 -   Java Runtime
-    -   The solution requires a Java 8 Runtime. We strongly recommend using [Amazon Corretto 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html). Alternatively, you can also use other OpenJDKs such as [Eclipse Temurin](https://adoptium.net/en-GB/temurin/releases/?version=8).
+    -   The solution requires a Java 17 Runtime. We strongly recommend using [Amazon Corretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html). Alternatively, you can also use other OpenJDKs such as [Eclipse Temurin](https://adoptium.net/en-GB/temurin/releases/?version=17).
 -   [Maven](https://maven.apache.org/install.html.) (>=3.5.2)
-    -    We recommend configuring Maven to use an OpenJDK8 compatible JAVA version, such as Amazon Corretto 8.
+    -   We recommend configuring Maven to use an OpenJDK17 compatible JAVA version, such as Amazon Corretto 17.
 -   [Docker](https://docs.docker.com/get-docker/)
 -   [Curl](https://curl.se/download.html)
 
@@ -148,16 +150,16 @@ Use the `source/cdk.json` file to configure the solution. It is recommended to c
 
 **AMI configuration (optional)**
 
-The `EC2` hosting option by default provisions EC2 instances with Amazon Linux 2. This can be overriden by specifying the `customAmi` object in the `cdk.json` file. This object should provide the AMI name and owners' account IDs or alias that `cdk` would use to perform an AMI lookup. Depending on the instance types utilized in the cluster, please supply the corresponding AMI for "arm64" (Graviton instances) or "amd64" (x86-based instance types). The solution has been tested with Amazon Linux, Ubuntu 20.04 LTS and Ubuntu 22.04 LTS.
+The `EC2` hosting option by default provisions EC2 instances with Amazon Linux 2023. This can be overriden by specifying the `customAmi` object in the `cdk.json` file. This object should provide the AMI name and owners' account IDs or alias that `cdk` would use to perform an AMI lookup. Depending on the instance types utilized in the cluster, please supply the corresponding AMI for "arm64" (Graviton instances) or "amd64" (x86-based instance types). The solution has been tested with Amazon Linux 2023 and Ubuntu 22.04 LTS.
 
 ```
 "customAmi": {
     "arm64": {
-        "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-arm64-server*",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-arm64-server*",
         "owners": ["amazon"]
     },
     "amd64": {
-        "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server*",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server*",
         "owners": ["amazon"]
     }
 },
@@ -211,6 +213,7 @@ This solution can seamlessly integrate with Amazon Route53 to automate the creat
 With the following Route53 configuration, this solution will automatically create a Route53 domain using the specified `druidDomain` in the supplied hosted zone. In addition, this solution will create a certificate in AWS Certificate Manager (ACM) and associate it with the Application Load Balancer (ALB) to enable secure HTTPS communication.
 
 -   Route53 hosted zone configuration
+
     ```
     "route53HostedZoneName": "<The hosted zone name in Route 53. eg. example.com>",
     "route53HostedZoneId": "<The hosted zone ID in Route 53. eg. Z03935053V8YUTYYYEXXX>",
@@ -222,6 +225,7 @@ With the following Route53 configuration, this solution will automatically creat
     ```
 
 If none of the aforementioned configurations are set up,, the solution will assign a generic Application Load Balancer (ALB) domain name for your Druid cluster which will expose HTTP protocol only. You also have the flexibility to set up the domain outside of the solution. In such case, you must configure the TLS certificate and the `druidDomain` to facilitate secure HTTPS access to the Druid cluster after the domain has been successfully set up.
+
 -   TLS certficate configuration
     ```
     "tlsCertificateArn": "<The ARN of ACM certificate>"
@@ -242,7 +246,9 @@ By default, the solution will upload druid binary, extension, config and scripts
 ```
 "selfManageInstallationBucketAssets": true,
 ```
+
 When this option is enabled, you will need to manually upload assets in the following folders to s3 bucket after you `npm run build`
+
 ```
 source/lib/uploads/scripts/ -> bootstrap-s3-bucket-installation/scripts/
 source/lib/docker/extensions/ -> bootstrap-s3-bucket-installation/extensions/
@@ -268,12 +274,14 @@ The default setup of this solution activates basic authentication, enabling acce
 ```
 
 The client secret should consist of the following two fields:
+
 ```
 clientSecret: <the secret code for the OIDC IDP client, which is typically generated by the OIDC IDP.>
 cookiePassphrase: <a password that uses a mix of letters and numbers in plain text form.>
 ```
 
 Example: Identity provider configuration to federate through Amazon Cognito.
+
 ```
 "oidcIdpConfig": {
     "clientId": "<OIDC IDP client ID>",
@@ -294,7 +302,7 @@ It is important to note that the redirect URI on the IDP side should be configur
 -   **Druid version**: Apache Druid release version (eg. 27.0.0) that you want to run. It is recommended to use the latest stable [Druid version](#https://druid.apache.org/downloads.html).
 
     ```
-    "druidVersion": "27.0.0",
+    "druidVersion": "31.0.0",
     ```
 
 -   **Druid cluster name**: A sequence of ASCII characters that uniquely identifies each Druid cluster. If there are multiple deployments, please make sure that you have an unique cluster name for each cluster. The cluster name will be appended to the CloudFormation stack name.
@@ -322,6 +330,7 @@ It is important to note that the redirect URI on the IDP side should be configur
     ```
 
 -   **Druid extensions**: A list of Druid extensions to load into the cluster. To load the core extensions for Druid, you have the option to modify the list by adding or removing extensions from it. If you wish to load any custom extensions that you have developed in-house, please ensure that the artifacts for those extensions (such as Java JAR files) are also copied into the `source/lib/docker/extensions` folder. To reduce the configuration overhead, the solution will automatically incorporate the extensions : `druid-oidc`, `druid-cloudwatch`, `druid-basic-security`, `druid-s3-extensions`, `postgresql-metadata-storage`, and `simple-client-sslcontext` to the user provided extension list.
+
     -   Druid extensions example
         ```
         "druidExtensions": [
@@ -335,8 +344,10 @@ It is important to note that the redirect URI on the IDP side should be configur
         ],
         ```
 
--  **Druid common runtime properties customisation (optional)**: By default, the solution features a `common.runtime.properties` file located within the `source/lib/uploads/config/_common` directory, thoughtfully crafted to cater to the majority of use cases. Nevertheless, you retain the flexibility to customize and override the settings in this file using the CDK configuration as needed.
-    - Druid common runtime customisation configuration example
+-   **Druid common runtime properties customisation (optional)**: By default, the solution features a `common.runtime.properties` file located within the `source/lib/uploads/config/_common` directory, thoughtfully crafted to cater to the majority of use cases. Nevertheless, you retain the flexibility to customize and override the settings in this file using the CDK configuration as needed.
+
+    -   Druid common runtime customisation configuration example
+
     ```
     "druidCommonRuntimeConfig": {
         "druid.startup.logging.logProperties": false
@@ -414,6 +425,7 @@ This section provides instructions for creating a new Aurora metadata store.
 ```
 
 Example configuration to create a new Aurora metadata store:
+
 ```
 "druidMetadataStoreConfig": {
     "metadataStoreType": "aurora",
@@ -462,6 +474,7 @@ This section provides instructions on how to create a new Aurora metadata store 
 ```
 
 Example configuration to create a metadata store from snapshot:
+
 ```
 "druidMetadataStoreConfig": {
     "metadataStoreType": "aurora",
@@ -480,7 +493,7 @@ Example configuration to create a metadata store from snapshot:
 
 -   Bring your own PostgreSQL database for metadata store
 
-This section explains how to use your own PostgreSQL database for the metadata store. Please note that this solution by default will enforce TLS for the database connectivity. If you're using non-public certficates, you will need to ensure the non-public certficates can be validated by the Druid system. 
+This section explains how to use your own PostgreSQL database for the metadata store. Please note that this solution by default will enforce TLS for the database connectivity. If you're using non-public certficates, you will need to ensure the non-public certficates can be validated by the Druid system.
 
 ```
 "druidMetadataStoreConfig": {
@@ -503,6 +516,7 @@ This section explains how to use your own PostgreSQL database for the metadata s
 ```
 
 Example configuration to connect to an external metadata store:
+
 ```
 "druidMetadataStoreConfig": {
     "metadataStoreType": "custom",
@@ -531,6 +545,7 @@ By default, this solution will set up an bucket in Amazon S3 for deep storage. H
 ```
 
 Example deep storage configuration:
+
 ```
 "druidDeepStorageConfig": {
     "bucketArn": "arn:aws:s3:::<bucket-id>",
@@ -613,6 +628,7 @@ The solution comes pre-configured with Druid, which suits most use cases. Howeve
 ```
 
 Runtime configuration customisation example
+
 ```
 "runtimeConfig": {
     "historical": {
@@ -664,6 +680,7 @@ Runtime configuration customisation example
 The solution will set up a new Amazon EKS cluster in order to serve as the hosting environment for Druid. This section provides instructions on the configuration for the EKS cluster, including node group settings, involves the provisioning of four distinct node groups during deployment: master, query, data, and zookeeper.
 
 -   **EKS cluster configuration**
+
     ```
     "druidEksConfig": {
         // Kubernetes API server endpoint access. Valid values include PUBLIC, PRIVATE, and PUBLIC_AND_PRIVATE
@@ -682,6 +699,7 @@ The solution will set up a new Amazon EKS cluster in order to serve as the hosti
     ```
 
 -   **EC2 capacity provider configuration (required if capacityProviderType is ec2)**
+
     ```
     // Node group name, valid values include master, query, data, and zookeeper. In case of service tiering, data_<tier> is also supported.
     "<nodeGroupName>": {
@@ -706,6 +724,7 @@ The solution will set up a new Amazon EKS cluster in order to serve as the hosti
     ```
 
 -   **Fargate capacity provider configuration (required if capacityProviderType is fargate)**
+
     ```
     // Druid process name, valid values include coordinator, overlord, middleManager, historical, router, broker, and zookeeper.
     "<druidProcessName>": {
@@ -797,6 +816,7 @@ Upon successfully cloning the repository into your local development environment
 |- NOTICE.txt                   - Copyrights for this solution.
 |- THIRDPARTY_LICENSE.txt       - Copyrights licenses for third party software that was used in this solution
 |- README.md                    - this file.
+|- SECURITY.md                  - detailed information about reporting security issues.
 ```
 
 ---
