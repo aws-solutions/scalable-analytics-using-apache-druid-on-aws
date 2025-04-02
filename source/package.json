@@ -1,6 +1,6 @@
 {
     "name": "scalable-analytics-using-apache-druid-on-aws",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "Scalable Analytics using Apache Druid on AWS solution",
     "author": {
         "name": "Amazon Web Services",
@@ -30,9 +30,9 @@
         "@types/uuid": "^9.0.1",
         "@typescript-eslint/eslint-plugin": "^6.2.1",
         "@typescript-eslint/parser": "^6.2.1",
-        "aws-cdk": "^2.146.0",
+        "aws-cdk": "^2.1003.0",
         "aws-sdk-client-mock": "^3.0.0",
-        "esbuild": "^0.18.15",
+        "esbuild": "^0.25.1",
         "eslint": "^8.35.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-config-typescript": "^3.0.0",
@@ -46,16 +46,16 @@
         "typescript": "^5.1.6"
     },
     "dependencies": {
-        "@aws-cdk/aws-servicecatalogappregistry-alpha": "^2.146.0-alpha.0",
-        "@aws-cdk/lambda-layer-kubectl-v29": "^2.0.0",
+        "@aws-cdk/aws-servicecatalogappregistry-alpha": "^2.183.0-alpha.0",
+        "@aws-cdk/lambda-layer-kubectl-v29": "^2.1.1",
         "@aws-sdk/client-elastic-load-balancing-v2": "^3.477.0",
         "@aws-sdk/client-route-53": "^3.477.0",
         "@aws-sdk/client-secrets-manager": "^3.477.0",
         "@aws-sdk/client-service-catalog-appregistry": "^3.477.0",
         "@types/mustache": "^4.2.2",
         "ajv": "^8.12.0",
-        "aws-cdk-lib": "^2.146.0",
-        "axios": "^1.7.4",
+        "aws-cdk-lib": "^2.183.0",
+        "axios": "^1.8.3",
         "constructs": "^10.3.0",
         "cron-parser": "^4.8.1",
         "exponential-backoff": "^3.1.1",
@@ -68,6 +68,8 @@
     },
     "overrides": {
         "fast-xml-parser": "^4.4.1",
-        "semver": "^7.5.2"
+        "semver": "^7.5.2",
+        "aws-cdk-lib": "^2.183.0",
+        "@babel/core": "^7.26.10"
     }
 }

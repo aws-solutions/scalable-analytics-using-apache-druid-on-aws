@@ -7,18 +7,35 @@ useradd -m -U ${USER_NAME}
 
 if [[ ! -z $YUM_CMD ]]; then
     echo " >>zookeeper>> installing yum dependencies $(date)"
-    yum update -y && \
-        yum install -y java-17-amazon-corretto nc jq amazon-cloudwatch-agent && \
-        yum groupinstall "Development Tools" -y && \
-        yum erase openssl-devel -y && \
-        sudo yum install openssl11 openssl11-devel  libffi-devel bzip2-devel wget -y && \
-        wget https://www.python.org/ftp/python/3.10.15/Python-3.10.15.tgz && \
-        tar -xf Python-3.10.15.tgz && \
-        cd Python-3.10.15/ && \
-        ./configure --enable-optimizations && \
-        make -j $(nproc) && \
-        sudo make altinstall
-    PYTHON=python3.10
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum update -y
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum install -y java-17-amazon-corretto nc jq amazon-cloudwatch-agent nvme-cli
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum install -y python3.11 python3.11-pip
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    PYTHON=python3.11
+
 elif [[ ! -z $APT_CMD ]]; then
     echo " >>zookeeper>> installing apt-get dependencies $(date)"
     apt-get update
@@ -43,8 +60,10 @@ $PYTHON -m pip install -U pip
 $PYTHON -m pip install --no-input boto3 botocore supervisor awscli
 if [[ ! -z $YUM_CMD ]]; then
         chmod +x /usr/bin/aws
-        sudo easy_install supervisor
-        chmod +x /usr/bin/supervisord
+        chmod +x /usr/local/bin/supervisord
+	sudo yum install cronie -y
+	sudo systemctl enable crond.service
+	sudo systemctl start crond.service
 elif [[ ! -z $APT_CMD ]]; then
         chmod +x /usr/local/bin/aws
         chmod +x /usr/local/bin/supervisord
@@ -162,7 +181,8 @@ aws s3 cp --recursive s3://{{S3_INSTALLATION_BUCKET}}/config/zk/ $ZOOKEEPER_HOME
 
 mkdir -p $ZOOKEEPER_HOME/supervisor/supervisord.d/
 mkdir -p /var/log/supervisor/
-aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/supervisor/supervisord.conf $ZOOKEEPER_HOME/supervisor/supervisord.conf
+aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/systemd/system/supervisord.conf $ZOOKEEPER_HOME/supervisor/supervisord.conf
+aws s3 cp s3://{{S3_INSTALLATION_BUCKET}}/config/systemd/system/supervisord.service $ZOOKEEPER_HOME/supervisor/supervisord.service
 
 mkdir -p $ZOOKEEPER_HOME/logs/
 

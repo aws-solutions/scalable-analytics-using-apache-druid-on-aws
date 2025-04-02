@@ -94,7 +94,7 @@ export const configScheme = {
             title: 'Druid Version',
             $id: '#/properties/druidVersion',
             description: 'Version of Druid to use.',
-            examples: ['29.0.0', '30.0.0'],
+            examples: ['30.0.0', '31.0.0'],
         },
         druidExtensions: {
             type: 'array',

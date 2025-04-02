@@ -40,7 +40,7 @@
         "route53HostedZoneName": "example.com",
         "route53HostedZoneId": "Z0XXXXXXXXXXXXXX",
         "druidDomain": "druid.example.com",
-        "druidVersion": "30.0.0",
+        "druidVersion": "31.0.0",
         "druidOperationPlatform": "eks",
         "druidClusterName": "dev",
         "internetFacing": true,

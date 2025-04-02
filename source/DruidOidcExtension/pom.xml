@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.apache.druid</groupId>
             <artifactId>druid-server</artifactId>
-            <version>30.0.0</version>
+            <version>31.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -56,7 +56,7 @@
         <dependency>
             <groupId>org.apache.druid</groupId>
             <artifactId>druid-processing</artifactId>
-            <version>30.0.0</version>
+            <version>31.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -146,6 +146,12 @@
             <artifactId>mockwebserver</artifactId>
             <version>4.12.0</version>
             <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.minidev/json-smart -->
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.5.2</version>
         </dependency>
     </dependencies>
 

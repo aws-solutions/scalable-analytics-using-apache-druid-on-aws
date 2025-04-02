@@ -9,18 +9,34 @@ useradd -m -U ${USER_NAME}
 
 if [[ ! -z $YUM_CMD ]]; then
     echo " >>druid>> installing yum dependencies $(date)"
-    yum update -y && \
-        yum install -y java-17-amazon-corretto nc jq amazon-cloudwatch-agent nvme-cli && \
-        yum groupinstall "Development Tools" -y && \
-	yum erase openssl-devel -y && \
-	sudo yum install openssl11 openssl11-devel  libffi-devel bzip2-devel wget -y && \
-	wget https://www.python.org/ftp/python/3.10.15/Python-3.10.15.tgz && \
-	tar -xf Python-3.10.15.tgz && \
-	cd Python-3.10.15/ && \
-	./configure --enable-optimizations && \
-	make -j $(nproc) && \
-	sudo make altinstall
-    PYTHON=python3.10
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum update -y
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum install -y java-17-amazon-corretto nc jq amazon-cloudwatch-agent nvme-cli
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    STEP_SUCCESS=false
+    RETRIES=0
+    while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
+        RETRIES=$((RETRIES+1))
+        sudo yum install -y python3.11 python3.11-pip
+        if [ $? -eq 0 ]; then
+            STEP_SUCCESS=true
+        fi
+    done
+    PYTHON=python3.11
 elif [[ ! -z $APT_CMD ]]; then
     echo " >>druid>> installing apt-get dependencies $(date)"
     apt-get update
@@ -44,8 +60,10 @@ $PYTHON -m pip install -U pip
 $PYTHON -m pip install --no-input boto3 botocore requests jinja2 py-cpuinfo awscli supervisor tenacity
 if [[ ! -z $YUM_CMD ]]; then
 	chmod +x /usr/bin/aws
-	sudo easy_install supervisor
-	chmod +x /usr/bin/supervisord
+	chmod +x /usr/local/bin/supervisord
+	sudo yum install cronie -y
+	sudo systemctl enable crond.service
+	sudo systemctl start crond.service
 elif [[ ! -z $APT_CMD ]]; then
 	chmod +x /usr/local/bin/aws
 	chmod +x /usr/local/bin/supervisord
@@ -84,7 +102,7 @@ echo " >>druid>> starting CloudWatch agent $(date)"
 sed -i \
     -e "s|<DRUID_COMPONENT>|{{DRUID_COMPONENT}}|g" \
     -e "s|<DRUID_CLUSTER_NAME>|{{DRUID_CLUSTER_NAME}}|g" \
-    -e "s|<AWS_REGION>|AWS_REGION|g" \
+    -e "s|<AWS_REGION>|$AWS_REGION|g" \
     -e "s|<FIPS_ENDPOINT>|$($AWS_USE_FIPS_ENDPOINT && echo -fips)|g" \
     $DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:$DRUID_SOLUTION_CONFIG/cloudwatch-agent/amazon-cloudwatch-agent.json
@@ -92,7 +110,8 @@ sed -i \
 cp -rf $DRUID_SOLUTION_CONFIG/_common $DRUID_CLUSTER_CONFIG/
 
 mkdir -p $DRUID_HOME/conf/supervisor/supervisord.d/ /var/log/supervisor/
-cp -f $DRUID_SOLUTION_CONFIG/supervisor/supervisord.conf $DRUID_HOME/conf/supervisor/supervisord.conf
+cp -f $DRUID_SOLUTION_CONFIG/systemd/system/supervisord.conf $DRUID_HOME/conf/supervisor/supervisord.conf
+cp -f $DRUID_SOLUTION_CONFIG/systemd/system/supervisord.service $DRUID_HOME/conf/supervisor/supervisord.service
 
 echo " >>druid>> creating keystore and trust store for internal TLS certificates $(date)"
 export RANDFILE=/tmp/.rnd
