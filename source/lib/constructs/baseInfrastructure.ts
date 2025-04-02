@@ -102,6 +102,7 @@ export class BaseInfrastructure extends Construct {
                 subnetSelection: {
                     subnetType: ec2.SubnetType.PUBLIC,
                 },
+                machineImage: ec2.MachineImage.latestAmazonLinux2023(),
                 requireImdsv2: true,
             });
         }

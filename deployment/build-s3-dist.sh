@@ -21,7 +21,7 @@
 # Parameters:
 #  - source-bucket-base-name: Name for the S3 bucket location where the template will source the Lambda
 #    code from. The template will append '-[region_name]' to this bucket name.
-#    For example: ./build-s3-dist.sh solutions v1.0.5
+#    For example: ./build-s3-dist.sh solutions v1.0.6
 #    The template will then expect the source code to be located in the solutions-[region_name] bucket
 #  - solution-name: name of the solution for consistency
 #  - version-code: version of the package
@@ -32,8 +32,6 @@ normal=$(tput sgr0)
 #------------------------------------------------------------------------------
 # SETTINGS
 #------------------------------------------------------------------------------
-# Important: CDK global version number
-cdk_version=2.140.0
 # Note: should match package.json
 template_format="json"
 run_helper="false"
@@ -60,7 +58,7 @@ usage()
 {
     echo "Usage: $0 bucket solution-name version"
     echo "Please provide the base source bucket name, trademarked solution name, and version." 
-    echo "For example: ./build-s3-dist.sh mybucket my-solution v1.0.5" 
+    echo "For example: ./build-s3-dist.sh mybucket my-solution v1.0.6" 
     exit 1 
 }
 
@@ -345,15 +343,16 @@ echo "--------------------------------------------------------------------------
 # for customers and developers to use, as it globally changes their environment.
 do_cmd cd $source_dir
 do_cmd npm install
-do_cmd npm install --location=global aws-cdk@$cdk_version
+do_cmd npm install --location=global aws-cdk@^2 # See github.com/aws/aws-cdk/issues/32775
 
 # Add local install to PATH
 export PATH=$(npm bin):$PATH
 # Check cdk version to verify installation
 current_cdkver=`cdk --version | grep -Eo '^[0-9]{1,2}\.[0-9]+\.[0-9]+'`
 echo CDK version $current_cdkver
-if [[ $current_cdkver != $cdk_version ]]; then 
-    echo Required CDK version is ${cdk_version}, found ${current_cdkver}
+# if current_cdkver is empty, then cdk is not installed
+if [[ -z $current_cdkver ]]; then
+    echo "Please install AWS CDK"
     exit 255
 fi
 do_cmd setup_cdk_context

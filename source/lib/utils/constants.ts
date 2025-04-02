@@ -59,7 +59,7 @@ export const DEFAULT_TIER = '_default_tier';
 
 export const ZOOKEEPER_DEFAULT_VERSION = '3.8.4';
 
-export const DRUID_DEFAULT_VERSION = '30.0.0';
+export const DRUID_DEFAULT_VERSION = '31.0.0';
 
 export const DEFAULT_POSTGRES_PORT = 5432;
 

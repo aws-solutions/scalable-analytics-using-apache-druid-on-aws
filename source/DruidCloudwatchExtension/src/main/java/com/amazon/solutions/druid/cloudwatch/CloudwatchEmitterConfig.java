@@ -13,7 +13,7 @@ import com.google.common.base.Preconditions;
 @Data
 public class CloudwatchEmitterConfig {
     static final int CLOUDWATCH_METRICS_MEMORY_LIMIT = 100000000;
-    static final String SOLUTION_VERSION = "v1.0.5";
+    static final String SOLUTION_VERSION = "v1.0.6";
 
     @JsonProperty("batchSize")
     @Nullable

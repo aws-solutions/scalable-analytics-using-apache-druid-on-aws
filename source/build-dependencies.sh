@@ -3,7 +3,7 @@ set -e
 cdk_context="$(npm run -s cdk context -- -j)"
 
 druid_version=$(echo "$cdk_context" | grep "druidVersion" | awk '/druidVersion/{print $NF}' | tr -d '"' | tr -d ',')
-druid_version=${druid_version:-30.0.0}
+druid_version=${druid_version:-31.0.0}
 
 druid_operator_version="v1.2.3"
 druid_operator_repo="https://github.com/datainfrahq/druid-operator"

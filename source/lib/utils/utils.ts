@@ -125,7 +125,7 @@ export function createLaunchTemplate(
                 ? new ec2.LookupMachineImage({ ...customAmi.arm64! })
                 : new ec2.LookupMachineImage({ ...customAmi.amd64! });
     } else {
-        machineImage = ec2.MachineImage.latestAmazonLinux2({
+        machineImage = ec2.MachineImage.latestAmazonLinux2023({
             cpuType: instanceTypeInfo.arch,
         });
     }

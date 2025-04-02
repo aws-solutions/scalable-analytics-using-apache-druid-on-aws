@@ -46,7 +46,7 @@ public class CloudwatchEmitterConfigTest {
     @Test
     public void testToString_withValidConfig() {
         // arrange
-        CloudwatchEmitterConfig config = new CloudwatchEmitterConfig("test-cluster", 200, "v1.0.5");
+        CloudwatchEmitterConfig config = new CloudwatchEmitterConfig("test-cluster", 200, "v1.0.6");
 
         // act
         String actual = config.toString();
@@ -54,7 +54,7 @@ public class CloudwatchEmitterConfigTest {
         // assert
         Assert.assertTrue(actual.contains("test-cluster"));
         Assert.assertTrue(actual.contains("200"));
-        Assert.assertTrue(actual.contains("v1.0.5"));
+        Assert.assertTrue(actual.contains("v1.0.6"));
         Assert.assertTrue(actual.contains("CloudwatchEmitterConfig"));
     }
 
