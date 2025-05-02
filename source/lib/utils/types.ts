@@ -20,6 +20,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { ComparisonOperator, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
 
 import { ScalingInterval } from 'aws-cdk-lib/aws-applicationautoscaling';
+import { CustomLifecycleHookParams } from '../constructs/druidAutoScalingGroup';
 
 export enum DruidProcessType {
     COORDINATOR = 'coordinator',
@@ -296,6 +297,7 @@ export interface AutoScalingPolicy {
         startTime?: string;
         endTime?: string;
     }[];
+    customLifecycleHookParams?: CustomLifecycleHookParams;
 }
 
 export interface OidcIdpConfig {

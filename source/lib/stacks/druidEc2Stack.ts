@@ -30,6 +30,7 @@ import {
     DEFAULT_TIER,
     DRUID_METRICS_NAMESPACE,
     DRUID_SECURITY_GROUP_NAME,
+    INSTANCE_TERMINATION_TIMEOUT,
 } from '../utils/constants';
 import {
     AutoScalingPolicy,
@@ -43,6 +44,7 @@ import {
     addCfnNagSuppression,
 } from '../constructs/cfnNagSuppression';
 import {
+    CustomLifecycleHookParams,
     DruidAutoScalingGroup,
     DruidAutoScalingGroupContext,
 } from '../constructs/druidAutoScalingGroup';
@@ -222,7 +224,8 @@ export class DruidEc2Stack extends DruidStack {
         });
 
         // create master asg
-        const masterAsg = this.createAutoScalingGroup(asgContext, DruidNodeType.MASTER);
+        const masterAsg = this.createMasterASG(asgContext);
+
         queryAsgList.forEach((queryAsg) => {
             masterAsg.autoScalingGroup.node.addDependency(queryAsg.autoScalingGroup);
         });
@@ -279,6 +282,25 @@ export class DruidEc2Stack extends DruidStack {
         });
     }
 
+    private createCustomLifecycleHookParams(autoScalingPolicy?: AutoScalingPolicy): CustomLifecycleHookParams | undefined {
+        return autoScalingPolicy?.customLifecycleHookParams ? {
+            defaultResult: autoScalingPolicy.customLifecycleHookParams.defaultResult as autoscaling.DefaultResult ?? autoscaling.DefaultResult.CONTINUE,
+            heartbeatTimeout: autoScalingPolicy.customLifecycleHookParams.heartbeatTimeout ?? INSTANCE_TERMINATION_TIMEOUT,
+        } : undefined;
+    }
+
+    private createMasterASG(
+        asgContext: DruidAutoScalingGroupContext,
+    ): DruidAutoScalingGroup {
+        const druidConfig = asgContext.clusterParams.hostingConfig as Ec2Config;
+        const autoScalingPolicy = druidConfig['master']?.autoScalingPolicy;
+        const customLifecycleHookParams = this.createCustomLifecycleHookParams(autoScalingPolicy);
+
+        const masterAsg = this.createAutoScalingGroup(asgContext, DruidNodeType.MASTER, undefined, undefined, customLifecycleHookParams);
+
+        return masterAsg;
+    }
+
     private createQueryASG(
         asgContext: DruidAutoScalingGroupContext,
         queryTargetGrp: elb.IApplicationTargetGroup,
@@ -287,11 +309,14 @@ export class DruidEc2Stack extends DruidStack {
         autoScalingPolicy?: AutoScalingPolicy
     ): DruidAutoScalingGroup {
         const queryTierName = utils.getNodeTierName(DruidNodeType.QUERY, serviceTier);
+        const customLifecycleHookParams = this.createCustomLifecycleHookParams(autoScalingPolicy);
+
         const queryAsg = this.createAutoScalingGroup(
             asgContext,
             DruidNodeType.QUERY,
             serviceTier,
-            brokerTiers
+            brokerTiers,
+            customLifecycleHookParams
         );
 
         queryAsg.autoScalingGroup.attachToApplicationTargetGroup(queryTargetGrp);
@@ -329,10 +354,14 @@ export class DruidEc2Stack extends DruidStack {
         autoScalingPolicy?: AutoScalingPolicy
     ): DruidAutoScalingGroup {
         const dataTierName = utils.getNodeTierName(DruidNodeType.DATA, serviceTier);
+        const customLifecycleHookParams = this.createCustomLifecycleHookParams(autoScalingPolicy);
+
         const dataAsg = this.createAutoScalingGroup(
             asgContext,
             DruidNodeType.DATA,
-            serviceTier
+            serviceTier,
+            undefined,
+            customLifecycleHookParams
         );
 
         if (autoScalingPolicy?.cpuUtilisationPercent) {
@@ -415,10 +444,14 @@ export class DruidEc2Stack extends DruidStack {
             DruidNodeType.MIDDLE_MANAGER,
             serviceTier
         );
+        const customLifecycleHookParams = this.createCustomLifecycleHookParams(autoScalingPolicy);
+
         const middleManagerAsg = this.createAutoScalingGroup(
             asgContext,
             DruidNodeType.MIDDLE_MANAGER,
-            serviceTier
+            serviceTier,
+            undefined,
+            customLifecycleHookParams
         );
 
         if (autoScalingPolicy?.cpuUtilisationPercent) {
@@ -468,10 +501,14 @@ export class DruidEc2Stack extends DruidStack {
             DruidNodeType.HISTORICAL,
             serviceTier
         );
+        const customLifecycleHookParams = this.createCustomLifecycleHookParams(autoScalingPolicy);
+
         const historicalAsg = this.createAutoScalingGroup(
             asgContext,
             DruidNodeType.HISTORICAL,
-            serviceTier
+            serviceTier,
+            undefined,
+            customLifecycleHookParams
         );
 
         if (autoScalingPolicy?.cpuUtilisationPercent) {
@@ -675,7 +712,8 @@ export class DruidEc2Stack extends DruidStack {
         asgContext: DruidAutoScalingGroupContext,
         nodeType: DruidNodeType,
         serviceTier?: string,
-        brokerTiers?: string[]
+        brokerTiers?: string[],
+        customLifecycleHookParams?: CustomLifecycleHookParams,
     ): DruidAutoScalingGroup {
         const nodeTierName = utils.getNodeTierName(nodeType, serviceTier);
 
@@ -688,6 +726,7 @@ export class DruidEc2Stack extends DruidStack {
                 serviceTier,
                 brokerTiers,
                 baseUrl: this.druidBaseUrl,
+                customLifecycleHookParams,
             }
         );
 
