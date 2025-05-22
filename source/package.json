@@ -1,6 +1,6 @@
 {
     "name": "scalable-analytics-using-apache-druid-on-aws",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "Scalable Analytics using Apache Druid on AWS solution",
     "author": {
         "name": "Amazon Web Services",

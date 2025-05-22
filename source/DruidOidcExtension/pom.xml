@@ -26,7 +26,7 @@
     <artifactId>druid-oidc</artifactId>
     <name>druid-oidc</name>
     <description>druid-oidc</description>
-    <version>29.0.1</version>
+    <version>33.0.0</version>
 
     <properties>
         <pac4j.version>4.5.7</pac4j.version>
@@ -38,14 +38,41 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <jdk.version>17</jdk.version>
+        <json.smart.version>2.5.2</json.smart.version>
+        <commons.beanutils.version>1.9.4</commons.beanutils.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override json smart version to fix CVE-2023-1370 -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json.smart.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.druid</groupId>
             <artifactId>druid-server</artifactId>
-            <version>31.0.0</version>
+            <version>33.0.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -56,7 +83,23 @@
         <dependency>
             <groupId>org.apache.druid</groupId>
             <artifactId>druid-processing</artifactId>
-            <version>31.0.0</version>
+            <version>33.0.0</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>${commons.beanutils.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -142,16 +185,21 @@
             <version>5.4.0</version>
         </dependency>
         <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>${json.smart.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
             <version>4.12.0</version>
             <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/net.minidev/json-smart -->
-        <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>2.5.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

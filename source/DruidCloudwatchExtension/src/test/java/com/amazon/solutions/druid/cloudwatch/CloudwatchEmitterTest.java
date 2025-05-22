@@ -188,7 +188,7 @@ public class CloudwatchEmitterTest {
         ServiceMetricEvent metricEvent = metricEventBuilder
                 .setDimension("key1", "value1")
                 .setDimension("key2", "value2")
-                .build("task/success/count",  1)
+                .setMetric("task/success/count", 1)
                 .build("some-service", "some-task");
         when(druidMonitoringMetricsFactory.createCloudwatchMetric(any(AlertEvent.class)))
                 .thenReturn(new MetricDatum().withMetricName("Druid-Alert"));

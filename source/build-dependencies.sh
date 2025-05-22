@@ -3,9 +3,9 @@ set -e
 cdk_context="$(npm run -s cdk context -- -j)"
 
 druid_version=$(echo "$cdk_context" | grep "druidVersion" | awk '/druidVersion/{print $NF}' | tr -d '"' | tr -d ',')
-druid_version=${druid_version:-31.0.0}
+druid_version=${druid_version:-33.0.0}
 
-druid_operator_version="v1.2.3"
+druid_operator_version="v1.3.0"
 druid_operator_repo="https://github.com/datainfrahq/druid-operator"
 
 do_cmd() 
@@ -38,7 +38,7 @@ build_druid_cloudwatch()
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-cloudwatch/ && \
        mkdir -p ../lib/docker/extensions/druid-cloudwatch/ && \
-       cp -f target/druid-cloudwatch-25.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-cloudwatch/ && cd ..
+       cp -f target/druid-cloudwatch-33.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-cloudwatch/ && cd ..
 }
 
 build_druid_oidc()
@@ -48,7 +48,7 @@ build_druid_oidc()
        mvn clean verify package && \
        rm -rf ../lib/docker/extensions/druid-oidc/ && \
        mkdir -p ../lib/docker/extensions/druid-oidc/ && \
-       cp -f target/druid-oidc-29.0.1-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
+       cp -f target/druid-oidc-33.0.0-jar-with-dependencies.jar ../lib/docker/extensions/druid-oidc/
 }
 
 download_druid_operator()
@@ -108,7 +108,7 @@ download_druid()
 download_zookeeper() 
 {
     local zookeeper_version=$(echo "$cdk_context"  | grep "zookeeperVersion" | awk '/zookeeperVersion/{print $NF}' | tr -d '"' | tr -d ',')
-    zookeeper_version=${zookeeper_version:-3.8.4}
+    zookeeper_version=${zookeeper_version:-3.9.3}
     download_url="https://archive.apache.org/dist/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz"
     alt_url="https://dlcdn.apache.org/zookeeper/zookeeper-${zookeeper_version}/apache-zookeeper-${zookeeper_version}-bin.tar.gz"
     download_and_verify_file "$zookeeper_version" "$download_url" "$alt_url" "./zookeeper-bin" "apache-zookeeper"
