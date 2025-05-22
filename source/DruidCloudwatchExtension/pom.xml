@@ -6,10 +6,10 @@
     <groupId>com.amazon.solutions.druid.extensions</groupId>
     <artifactId>druid-cloudwatch</artifactId>
     <description>druid-cloudwatch</description>
-    <version>25.0.0</version>
+    <version>33.0.0</version>
 
     <properties>
-        <druid.version>25.0.0</druid.version>
+        <druid.version>33.0.0</druid.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <jdk.version>17</jdk.version>
@@ -19,9 +19,23 @@
         <!-- https://mvnrepository.com/artifact/org.apache.druid/druid-core -->
         <dependency>
             <groupId>org.apache.druid</groupId>
-            <artifactId>druid-core</artifactId>
+            <artifactId>druid-processing</artifactId>
             <version>${druid.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

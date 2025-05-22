@@ -302,7 +302,7 @@ It is important to note that the redirect URI on the IDP side should be configur
 -   **Druid version**: Apache Druid release version (eg. 27.0.0) that you want to run. It is recommended to use the latest stable [Druid version](#https://druid.apache.org/downloads.html).
 
     ```
-    "druidVersion": "31.0.0",
+    "druidVersion": "33.0.0",
     ```
 
 -   **Druid cluster name**: A sequence of ASCII characters that uniquely identifies each Druid cluster. If there are multiple deployments, please make sure that you have an unique cluster name for each cluster. The cluster name will be appended to the CloudFormation stack name.

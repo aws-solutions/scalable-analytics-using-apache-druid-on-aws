@@ -31,12 +31,12 @@ if [[ ! -z $YUM_CMD ]]; then
     RETRIES=0
     while [ "$STEP_SUCCESS" == false ] && [ $RETRIES -lt 5 ]; do
         RETRIES=$((RETRIES+1))
-        sudo yum install -y python3.11 python3.11-pip
+        sudo yum install -y python3.12 python3.12-pip
         if [ $? -eq 0 ]; then
             STEP_SUCCESS=true
         fi
     done
-    PYTHON=python3.11
+    PYTHON=python3.12
 elif [[ ! -z $APT_CMD ]]; then
     echo " >>druid>> installing apt-get dependencies $(date)"
     apt-get update
